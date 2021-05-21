@@ -1,0 +1,5 @@
+docs/*.docx
+docs/*.doc
+docs/*.png
+public/documents/*
+!.gitignore
