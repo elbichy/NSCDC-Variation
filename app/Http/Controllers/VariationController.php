@@ -9,7 +9,10 @@ use App\Models\Conhessp;
 use App\Models\Conmess;
 use App\Models\Conpass;
 use App\Models\OldConpass;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Milon\Barcode\DNS2D;
@@ -36,7 +39,8 @@ class VariationController extends Controller
         })
         ->addColumn('view', function($variation) {
             return '
-                    <a href="'.route('generate_single_variation_slip', $variation->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                    <a href="'.route('generate_single_admin_variation', $variation->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                    <a href="'.route('generate_single_finance_variation', $variation->id).'" style="margin-right:5px;" class="green-text text-darken-3" title="Print variation slip"><i class="fas fa-file-excel fa-lg"></i></a>
                 ';
         })
         ->addColumn('checkbox', function($variation) {
@@ -63,7 +67,7 @@ class VariationController extends Controller
         })
         ->addColumn('view', function($variation) {
             return '
-                    <a href="'.route('generate_single_variation_slip', $variation->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                    <a href="'.route('generate_single_admin_variation', $variation->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
                 ';
         })
         ->addColumn('checkbox', function($variation) {
@@ -87,7 +91,7 @@ class VariationController extends Controller
         })
         ->addColumn('view', function($variarion) {
             return '
-                    <a href="'.route('generate_single_variation_slip', $variarion->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                    <a href="'.route('generate_single_admin_variation', $variarion->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
                 ';
         })
         ->addColumn('checkbox', function($variarion) {
@@ -111,7 +115,7 @@ class VariationController extends Controller
         })
         ->addColumn('view', function($variarion) {
             return '
-                    <a href="'.route('generate_single_variation_slip', $variarion->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                    <a href="'.route('generate_single_admin_variation', $variarion->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
                 ';
         })
         ->addColumn('checkbox', function($variarion) {
@@ -135,7 +139,7 @@ class VariationController extends Controller
         })
         ->addColumn('view', function($variarion) {
             return '
-                    <a href="'.route('generate_single_variation_slip', $variarion->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                    <a href="'.route('generate_single_admin_variation', $variarion->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
                 ';
         })
         ->addColumn('checkbox', function($variarion) {
@@ -173,7 +177,7 @@ class VariationController extends Controller
                 $line['gl'] == '' ? $gl = null : $gl = $line['gl'];
                 $line['dofa'] == '' ? $dofa = null : $dofa = $line['dofa'];
                 $line['salary_structure'] == '' ? $salary_structure = null : $salary_structure = $line['salary_structure'];
-                $line['dor'] == '' ? $dor = null : $dor = $line['dor'];
+                // $line['dor'] == '' ? $dor = null : $dor = $line['dor'];
                 $line['paypoint'] == '' ? $paypoint = null : $paypoint = $line['paypoint'];
 
                 $beneficiary = Beneficiary::create([
@@ -186,7 +190,7 @@ class VariationController extends Controller
                     'gl' => $gl,
                     'dofa' => $dofa,
                     'salary_structure' => $salary_structure,
-                    'dor' => $dor,
+                    // 'dor' => $dor,
                     'paypoint' => $paypoint,
                 ]);
             });
@@ -222,7 +226,9 @@ class VariationController extends Controller
                 $line['dofa'] == '' ? $dofa = null : $dofa = $line['dofa'];
                 $line['salary_structure'] == '' ? $salary_structure = null : $salary_structure = $line['salary_structure'];
                 $line['paypoint'] == '' ? $paypoint = null : $paypoint = $line['paypoint'];
-                $line['dor'] == '' ? $dor = null : $dor = $line['dor'];
+                $line['bank'] == '' ? $bank = null : $bank = $line['bank'];
+                $line['acc_no'] == '' ? $acc_no = null : $acc_no = $line['acc_no'];
+                // $line['dor'] == '' ? $dor = null : $dor = $line['dor'];
 
                 $line['old_rank'] == '' ? $old_rank = null : $old_rank = $line['old_rank'];
                 $line['old_gl'] == '' ? $old_gl = null : $old_gl = $line['old_gl'];
@@ -234,7 +240,9 @@ class VariationController extends Controller
                 
                 $line['effective'] == '' ? $effective = null : $effective = $line['effective'];
                 $line['placed'] == '' ? $placed = null : $placed = $line['placed'];
-        
+                $line['months_paid'] == '' ? $months_paid = null : $months_paid = $line['months_paid'];
+                
+                $line['pro_type'] == '' ? $pro_type = null : $pro_type = $line['pro_type'];
                 $line['remark'] == '' ? $remark = null : $remark = $line['remark'];
                 
                 
@@ -246,11 +254,11 @@ class VariationController extends Controller
                         // VARIATION COMPUTATIONS
                         $old_salary_per_annum = Conpass::where('gl', $old_gl)
                         ->where('step', $old_step)
-                        ->first()->salary_per_annum_with_shift;
+                        ->first()->salary_per_annum;
 
                         $new_salary_per_annum = Conpass::where('gl', $new_gl)
                                             ->where('step', $new_step)
-                                            ->first()->salary_per_annum_with_shift;
+                                            ->first()->salary_per_annum;
                         $variation_amount = $new_salary_per_annum - $old_salary_per_annum;
                         $effective = Carbon::instance($effective);
                         $placed = Carbon::instance($placed);
@@ -267,7 +275,9 @@ class VariationController extends Controller
                         'dofa' => $dofa,
                         'salary_structure' => $salary_structure,
                         'paypoint' => $paypoint,
-                        'dor' => $dor,
+                        'bank' => $bank,
+                        'acc_no' => $acc_no,
+                        // 'dor' => $dor,
                         'old_rank' => $old_rank,
                         'old_gl' => $old_gl,
                         'old_step' => $old_step,
@@ -279,19 +289,21 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
+                        'months_paid' => $months_owed,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
+                        'pro_type' => $remark,
                         'remark' => $remark,
                         ]);
                     }else{
                         // VARIATION COMPUTATIONS
                         $old_salary_per_annum = OldConpass::where('gl', $old_gl)
                         ->where('step', $old_step)
-                        ->first()->salary_per_annum_with_shift;
+                        ->first()->salary_per_annum;
 
                         $new_salary_per_annum = OldConpass::where('gl', $new_gl)
                                             ->where('step', $new_step)
-                                            ->first()->salary_per_annum_with_shift;
+                                            ->first()->salary_per_annum;
                         $variation_amount = $new_salary_per_annum - $old_salary_per_annum;
                         $effective = Carbon::instance($effective);
                         $placed = Carbon::instance($placed);
@@ -308,7 +320,9 @@ class VariationController extends Controller
                         'dofa' => $dofa,
                         'salary_structure' => $salary_structure,
                         'paypoint' => $paypoint,
-                        'dor' => $dor,
+                        'bank' => $bank,
+                        'acc_no' => $acc_no,
+                        // 'dor' => $dor,
                         'old_rank' => $old_rank,
                         'old_gl' => $old_gl,
                         'old_step' => $old_step,
@@ -320,8 +334,10 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
+                        'months_paid' => $months_owed,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
+                        'pro_type' => $remark,
                         'remark' => $remark,
                         ]);
                     }
@@ -352,7 +368,9 @@ class VariationController extends Controller
                         'dofa' => $dofa,
                         'salary_structure' => $salary_structure,
                         'paypoint' => $paypoint,
-                        'dor' => $dor,
+                        'bank' => $bank,
+                        'acc_no' => $acc_no,
+                        // 'dor' => $dor,
                         'old_rank' => $old_rank,
                         'old_gl' => $old_gl,
                         'old_step' => $old_step,
@@ -364,8 +382,10 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
+                        'months_paid' => $months_owed,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
+                        'pro_type' => $remark,
                         'remark' => $remark,
                     ]);
 
@@ -395,7 +415,9 @@ class VariationController extends Controller
                         'dofa' => $dofa,
                         'salary_structure' => $salary_structure,
                         'paypoint' => $paypoint,
-                        'dor' => $dor,
+                        'bank' => $bank,
+                        'acc_no' => $acc_no,
+                        // 'dor' => $dor,
                         'old_rank' => $old_rank,
                         'old_gl' => $old_gl,
                         'old_step' => $old_step,
@@ -407,8 +429,10 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
+                        'months_paid' => $months_owed,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
+                        'pro_type' => $remark,
                         'remark' => $remark,
                     ]);
 
@@ -437,7 +461,9 @@ class VariationController extends Controller
                         'dofa' => $dofa,
                         'salary_structure' => $salary_structure,
                         'paypoint' => $paypoint,
-                        'dor' => $dor,
+                        'bank' => $bank,
+                        'acc_no' => $acc_no,
+                        // 'dor' => $dor,
                         'old_rank' => $old_rank,
                         'old_gl' => $old_gl,
                         'old_step' => $old_step,
@@ -449,8 +475,10 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
+                        'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
+                        'pro_type' => $remark,
                         'remark' => $remark,
                     ]);
                 }
@@ -462,8 +490,8 @@ class VariationController extends Controller
         }
     }
 
-    // GENERATE SINGLE REDEPLOYMENT SIGNAL
-    public function generate_single_variation_letter($id, DNS2D $dNS2D){   
+    // GENERATE SINGLE ADMIN VARIATION
+    public function generate_single_admin_variation($id, DNS2D $dNS2D){   
 
         $variation = Variation::where('id', $id)->first();
             
@@ -645,9 +673,8 @@ class VariationController extends Controller
         $objWriter->save(storage_path('app/docs/'.$variation->name.'.docx'));
         return response()->download(storage_path('app/docs/'.$variation->name.'.docx'));
     }
-
-    // GENERATE BULK REDEPLOYMENT SIGNAL
-    public function generate_bulk_variation_letter(Request $request, DNS2D $dNS2D){
+    // GENERATE BULK ADMIN VARIATION
+    public function generate_bulk_admin_variation(Request $request, DNS2D $dNS2D){
 
         $variations = Variation::orderByRaw("FIELD(present_rank, 'CG', 'DCG', 'ACG', 'CC', 'DCC', 'ACC', 'CSC', 'SC', 'DSC', 'ASC I', 'ASC II', 'CIC', 'DCIC', 'ACIC', 'PIC I', 'PIC II', 'SIC', 'IC', 'AIC', 'CCA', 'SCA', 'CA I', 'CA II', 'CA III', 'NON UNIFORM', 'N/A')")->find($request->candidates);
 
@@ -838,4 +865,799 @@ class VariationController extends Controller
             return false;
         }
     }
+
+    
+    public function get_months_owed($start_date, $end_date){
+        $s = implode("-", array_reverse(explode("/", $start_date)) );
+        $e = implode("-", array_reverse(explode("/", $end_date)) );
+    
+        // get the parts separated
+        $start = explode("-",$s);
+        $end = explode("-",$e) ;
+
+        $iterations = ((intVal($end[0]) - intVal($start[0])) * 12) - (intVal($start[1]) - intVal($end[1])) ;
+
+        $sets=[$start[0] => array("start" => $s, "end" => "", "months" => 0)];
+        $curdstart= $curd = $s;
+        $curyear = date("Y", strtotime($s));
+
+        for($x=0; $x<=$iterations; $x++) {
+            $curdend = date("Y-m-d", strtotime($curd . " +{$x} months"));
+            $curyear = date("Y", strtotime($curdend));
+            if (!isset($sets[$curyear])) {
+                $sets[$curyear]= array("start" => $curdend, "end" => "", "months" => 0);
+            }
+            $sets[$curyear]['months']++;
+            $sets[$curyear]['end'] = date("Y-m-", strtotime($curdend)) . "31";
+            
+        }
+
+        return $sets;
+    }
+    // GENERATE SINGLE FINANCE VARIATION
+    public function generate_single_finance_variation($id, DNS2D $dNS2D){   
+
+        $variation = Variation::where('id', $id)->first();
+        
+        $effective = Carbon::create($variation->effective);
+        $placed = Carbon::create($variation->placed);
+        $months_owed = $effective->diffInMonths($placed)+1;
+
+        $iteration = $this->get_months_owed($effective, $placed);
+        
+        $spreadsheet = new Spreadsheet();
+
+        // DEFAULT SETUPS
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(16);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // PRINT SETUP
+        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+        $sheet->getPageSetup()->setScale(100);
+        $sheet->getPageSetup()->setFitToWidth(1); 
+
+        $sheet->getStyle('A1:B6')->applyFromArray(
+            [
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+            ]
+        );
+        $sheet->getStyle('B1:B6')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('A1:A6')->applyFromArray(
+            [
+                'font' => [
+                    'bold' => true,
+                ]
+            ]
+        );
+        $sheet->getSheetView()->setZoomScale(80);
+        $sheet->getColumnDimension('A')->setWidth(26);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
+        $sheet->getColumnDimension('E')->setAutoSize(true);
+        $sheet->getColumnDimension('F')->setAutoSize(true);
+        $sheet->getColumnDimension('G')->setAutoSize(true);
+        $sheet->getColumnDimension('H')->setAutoSize(true);
+        
+        // ENTER THE HEADING
+        $sheet->fromArray([
+            ['NAME', $variation->name,],
+            ['SERVICE NO:-',   $variation->svc_no,],
+            ['NHQ FILE NO:-',   '',],
+            ['IPPIS NO:-',   $variation->ippis_no,],
+            ['ACCOUNT NO/BANK',   $variation->acc_no .' - '. $variation->bank],
+            ['PURPOSE',   $variation->remark.' ARREARS'],
+        ]);
+
+        // LOOP THROUGH THE YEARS
+        $i = 1;
+        $stp_add = 0;
+        $count = 1;
+        $loop_count = 0;
+        $total = [];
+        foreach ($iteration as $key => $value) {
+
+            // STYLES
+            $sheet->getStyle('A'.($i+6).':H'.($i+12))->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]);
+            $sheet->mergeCells('A'.($i+6).':H'.($i+6)); //YEAR HEADING
+            $sheet->getStyle('A'.($i+6).':H'.($i+6))->applyFromArray( //YEAR HEADING
+                [
+                    'font' => [
+                        'bold' => true,
+                    ],
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    ],
+                ]
+            );
+
+            $sheet->getStyle('A'.($i+7).':H'.($i+7))->applyFromArray( //COLUMN HEADS
+                [
+                    'font' => [
+                        'bold' => true,
+                    ],
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    ],
+                ]
+            );
+
+            $sheet->getStyle('C'.($i+8).':H'.($i+12))->getNumberFormat() //COMPUTATIONS
+                    ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            
+            $sheet->getStyle('A'.($i+11).':H'.($i+12))->getAlignment()->setWrapText(true); //TOTALS
+            $sheet->getStyle('A'.($i+11).':H'.($i+12))->applyFromArray( //TOTALS
+                [
+                    'font' => [
+                        'bold' => true,
+                    ]
+                ]
+            );
+                    
+            $old_gl = $variation->old_gl;
+            $new_gl = $variation->new_gl;
+
+            $old_step = $variation->old_step+$stp_add;
+            $new_step = $variation->new_step+$stp_add;
+            
+            if($old_gl >= 15 && $old_gl <= 15 && $old_step > 6){
+                $old_step = 6;
+            }
+            elseif($old_gl >= 14 && $old_gl <= 14 && $old_step > 7){
+                $old_step = 7;
+            }
+            elseif($old_gl >= 11 && $old_gl <= 13 && $old_step > 8){
+                $old_step = 8;
+            }
+            elseif($old_gl >= 3 && $old_gl <= 10 && $old_step > 10){
+                $old_step = 10;
+            }
+
+            if($new_gl >= 16 && $new_gl <= 16 && $new_step > 5){
+                $new_step = 5;
+            }
+            elseif($new_gl >= 15 && $new_gl <= 15 && $new_step > 6){
+                $new_step = 6;
+            }
+            elseif($new_gl >= 14 && $new_gl <= 14 && $new_step > 7){
+                $new_step = 7;
+            }
+            elseif($new_gl >= 11 && $new_gl <= 13 && $new_step > 8){
+                $new_step = 8;
+            }
+            elseif($new_gl >= 3 && $new_gl <= 10 && $new_step > 10){
+                $new_step = 10;
+            }
+                    
+
+            $old_salary = OldConpass::where('gl', $old_gl)
+                            ->where('step', $old_step)
+                            ->first();
+            $new_salary = OldConpass::where('gl', $new_gl)
+                            ->where('step', $new_step)
+                            ->first();
+                            
+            // return $new_salary;
+            array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * $value['months']);
+
+            // ENTER THE DATA
+            if ($loop_count == 0) {
+                if ($variation->months_paid > 0) {
+                    $sheet->fromArray([
+                        ['YEAR '.$key],
+                        [
+                            date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                            'GRADE LEVEL',
+                            'GROSS',
+                            'TAX',
+                            'NHF',
+                            'PENSION',
+                            'TOTAL DED',
+                            'NET PAY'
+                        ],
+                        [
+                            'PROMOTED SALARY (GROSS)',
+                            $variation->new_gl.'/'.($new_step),
+                            $new_salary->gross_emolument,
+                            $new_salary->tax,
+                            $new_salary->nhf,
+                            $new_salary->pension,
+                            $new_salary->total_deduction,
+                            $new_salary->net_pay
+                        ],
+                        [
+                            'OLD SALARY (GROSS)',
+                            $variation->old_gl.'/'.($old_step),
+                            $old_salary->gross_emolument,
+                            $old_salary->tax,
+                            $old_salary->nhf,
+                            $old_salary->pension,
+                            $old_salary->total_deduction,
+                            $old_salary->net_pay
+                        ],
+                        [
+                            '1 MONTH VARIANCE',
+                            '',
+                            $new_salary->gross_emolument-$old_salary->gross_emolument,
+                            $new_salary->tax-$old_salary->tax,
+                            $new_salary->nhf-$old_salary->nhf,
+                            $new_salary->pension-$old_salary->pension,
+                            $new_salary->total_deduction-$old_salary->total_deduction,
+                            $new_salary->net_pay-$old_salary->net_pay,
+                        ],
+                        [
+                            $value['months'].' MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                            '',
+                            ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
+                            ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
+                            ($new_salary->nhf-$old_salary->nhf)*($value['months'] - $variation->months_paid),
+                            ($new_salary->pension-$old_salary->pension)*($value['months'] - $variation->months_paid),
+                            ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
+                            ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
+                        ],
+                    ], null, "A".($i+6));
+                }else{
+                    $sheet->fromArray([
+                        ['YEAR '.$key],
+                        [
+                            date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                            'GRADE LEVEL',
+                            'GROSS',
+                            'TAX',
+                            'NHF',
+                            'PENSION',
+                            'TOTAL DED',
+                            'NET PAY'
+                        ],
+                        [
+                            'PROMOTED SALARY (GROSS)',
+                            $variation->new_gl.'/'.($new_step),
+                            $new_salary->gross_emolument,
+                            $new_salary->tax,
+                            $new_salary->nhf,
+                            $new_salary->pension,
+                            $new_salary->total_deduction,
+                            $new_salary->net_pay
+                        ],
+                        [
+                            'OLD SALARY (GROSS)',
+                            $variation->old_gl.'/'.($old_step),
+                            $old_salary->gross_emolument,
+                            $old_salary->tax,
+                            $old_salary->nhf,
+                            $old_salary->pension,
+                            $old_salary->total_deduction,
+                            $old_salary->net_pay
+                        ],
+                        [
+                            '1 MONTH VARIANCE',
+                            '',
+                            $new_salary->gross_emolument-$old_salary->gross_emolument,
+                            $new_salary->tax-$old_salary->tax,
+                            $new_salary->nhf-$old_salary->nhf,
+                            $new_salary->pension-$old_salary->pension,
+                            $new_salary->total_deduction-$old_salary->total_deduction,
+                            $new_salary->net_pay-$old_salary->net_pay,
+                        ],
+                        [
+                            $value['months'].' MONTHS VARIANCE',
+                            '',
+                            ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
+                            ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
+                            ($new_salary->nhf-$old_salary->nhf)*($value['months'] - $variation->months_paid),
+                            ($new_salary->pension-$old_salary->pension)*($value['months'] - $variation->months_paid),
+                            ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
+                            ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
+                        ],
+                    ], null, "A".($i+6));
+                }
+            }else{
+                // dd($count);
+                $sheet->fromArray([
+                    ['YEAR '.$key],
+                    [
+                        date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                        'GRADE LEVEL',
+                        'GROSS',
+                        'TAX',
+                        'NHF',
+                        'PENSION',
+                        'TOTAL DED',
+                        'NET PAY'
+                    ],
+                    [
+                        'PROMOTED SALARY (GROSS)',
+                        $variation->new_gl.'/'.($new_step),
+                        $new_salary->gross_emolument,
+                        $new_salary->tax,
+                        $new_salary->nhf,
+                        $new_salary->pension,
+                        $new_salary->total_deduction,
+                        $new_salary->net_pay
+                    ],
+                    [
+                        'OLD SALARY (GROSS)',
+                        $variation->old_gl.'/'.($old_step),
+                        $old_salary->gross_emolument,
+                        $old_salary->tax,
+                        $old_salary->nhf,
+                        $old_salary->pension,
+                        $old_salary->total_deduction,
+                        $old_salary->net_pay
+                    ],
+                    [
+                        '1 MONTH VARIANCE',
+                        '',
+                        $new_salary->gross_emolument-$old_salary->gross_emolument,
+                        $new_salary->tax-$old_salary->tax,
+                        $new_salary->nhf-$old_salary->nhf,
+                        $new_salary->pension-$old_salary->pension,
+                        $new_salary->total_deduction-$old_salary->total_deduction,
+                        $new_salary->net_pay-$old_salary->net_pay,
+                    ],
+                    [
+                        $value['months'].' MONTHS VARIANCE',
+                        '',
+                        ($new_salary->gross_emolument-$old_salary->gross_emolument)*$value['months'],
+                        ($new_salary->tax-$old_salary->tax)*$value['months'],
+                        ($new_salary->nhf-$old_salary->nhf)*$value['months'],
+                        ($new_salary->pension-$old_salary->pension)*$value['months'],
+                        ($new_salary->total_deduction-$old_salary->total_deduction)*$value['months'],
+                        ($new_salary->net_pay-$old_salary->net_pay)*$value['months'],
+                    ],
+                ], null, "A".($i+6));
+            }
+            // return count($iteration);
+            if($count == count($iteration)){
+                // return count($iteration);
+                if($variation->months_paid > 0){
+                    
+                    $sheet->fromArray([
+                        [
+                            $months_owed.' TOTAL MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            array_sum($total),
+                        ],
+                    ], null, "A".($i+12));
+                }else{
+                    $sheet->fromArray([
+                        [
+                            $months_owed.' TOTAL MONTHS VARIANCE',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            array_sum($total),
+                        ],
+                    ], null, "A".($i+12));
+                }
+            }
+
+            $i+=6;
+            $stp_add++;
+            $count++;
+            $loop_count++;
+        }
+        $writer = new Xlsx($spreadsheet);
+        $writer->save(storage_path('app/docs/'.$variation->name.'.xlsx'));
+        return response()->download(storage_path('app/docs/'.$variation->name.'.xlsx'));
+    }
+    // GENERATE SINGLE FINANCE VARIATION
+    public function generate_bulk_finance_variation(Request $request, DNS2D $dNS2D){   
+
+        $variations = Variation::orderByRaw("FIELD(present_rank, 'CG', 'DCG', 'ACG', 'CC', 'DCC', 'ACC', 'CSC', 'SC', 'DSC', 'ASC I', 'ASC II', 'CIC', 'DCIC', 'ACIC', 'PIC I', 'PIC II', 'SIC', 'IC', 'AIC', 'CCA', 'SCA', 'CA I', 'CA II', 'CA III', 'NON UNIFORM', 'N/A')")->find($request->candidates);
+        
+        // DEFAULT SETUPS
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(16);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        if (count($variations) > 0) {
+            
+            foreach ($variations as $sheet_key => $variation) {
+                
+                $effective = Carbon::create($variation->effective);
+                $placed = Carbon::create($variation->placed);
+                $months_owed = $effective->diffInMonths($placed)+1;
+                $iteration = $this->get_months_owed($effective, $placed);
+
+                $sheet_key > 0 ? $sheet = $spreadsheet->createSheet($sheet_key) : null;
+                $sheet->setTitle($variation->ippis_no.' - '.substr($variation->remark, 0, 5));
+
+                // PRINT SETUP
+                $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+                $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+                // $sheet->getPageSetup()->setScale(100);
+                $sheet->getPageSetup()->setFitToWidth(1);
+                
+                $sheet->getStyle('A1:B6')->applyFromArray(
+                    [
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                    ]
+                );
+                $sheet->getStyle('B1:B6')->getAlignment()->setWrapText(true);
+                $sheet->getStyle('A1:A6')->applyFromArray(
+                    [
+                        'font' => [
+                            'bold' => true,
+                        ]
+                    ]
+                );
+
+                $sheet->getSheetView()->setZoomScale(80);
+                $sheet->getColumnDimension('A')->setWidth(26);
+                $sheet->getColumnDimension('B')->setWidth(30);
+                $sheet->getColumnDimension('C')->setAutoSize(true);
+                $sheet->getColumnDimension('D')->setAutoSize(true);
+                $sheet->getColumnDimension('E')->setAutoSize(true);
+                $sheet->getColumnDimension('F')->setAutoSize(true);
+                $sheet->getColumnDimension('G')->setAutoSize(true);
+                $sheet->getColumnDimension('H')->setAutoSize(true);
+                
+                // ENTER THE HEADING
+                $sheet->fromArray([
+                    ['NAME', $variation->name,],
+                    ['SERVICE NO:-',   $variation->svc_no,],
+                    ['NHQ FILE NO:-',   '',],
+                    ['IPPIS NO:-',   $variation->ippis_no,],
+                    ['ACCOUNT NO/BANK',   $variation->acc_no .' - '. $variation->bank],
+                    ['PURPOSE',   $variation->remark.' ARREARS'],
+                ]);
+
+                // LOOP THROUGH THE YEARS
+                $i = 1;
+                $stp_add = 0;
+                $count = 1;
+                $loop_count = 0;
+                $total = [];
+                foreach ($iteration as $key => $value) {
+
+                    // STYLES
+                    $sheet->getStyle('A'.($i+6).':H'.($i+12))->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                    ]);
+                    $sheet->mergeCells('A'.($i+6).':H'.($i+6)); //YEAR HEADING
+                    $sheet->getStyle('A'.($i+6).':H'.($i+6))->applyFromArray( //YEAR HEADING
+                        [
+                            'font' => [
+                                'bold' => true,
+                            ],
+                            'alignment' => [
+                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                            ],
+                        ]
+                    );
+
+                    $sheet->getStyle('A'.($i+7).':H'.($i+7))->applyFromArray( //COLUMN HEADS
+                        [
+                            'font' => [
+                                'bold' => true,
+                            ],
+                            'alignment' => [
+                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            ],
+                        ]
+                    );
+
+                    $sheet->getStyle('C'.($i+8).':H'.($i+12))->getNumberFormat() //COMPUTATIONS
+                            ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+                    
+                    $sheet->getStyle('A'.($i+11).':H'.($i+12))->getAlignment()->setWrapText(true); //TOTALS
+                    $sheet->getStyle('A'.($i+11).':H'.($i+12))->applyFromArray( //TOTALS
+                        [
+                            'font' => [
+                                'bold' => true,
+                            ]
+                        ]
+                    );
+                            
+                    $old_gl = $variation->old_gl;
+                    $new_gl = $variation->new_gl;
+
+                    $old_step = $variation->old_step+$stp_add;
+                    $new_step = $variation->new_step+$stp_add;
+                    
+                    if($old_gl >= 15 && $old_gl <= 15 && $old_step > 6){
+                        $old_step = 6;
+                    }
+                    elseif($old_gl >= 14 && $old_gl <= 14 && $old_step > 7){
+                        $old_step = 7;
+                    }
+                    elseif($old_gl >= 11 && $old_gl <= 13 && $old_step > 8){
+                        $old_step = 8;
+                    }
+                    elseif($old_gl >= 3 && $old_gl <= 10 && $old_step > 10){
+                        $old_step = 10;
+                    }
+
+                    if($new_gl >= 16 && $new_gl <= 16 && $new_step > 5){
+                        $new_step = 5;
+                    }
+                    elseif($new_gl >= 15 && $new_gl <= 15 && $new_step > 6){
+                        $new_step = 6;
+                    }
+                    elseif($new_gl >= 14 && $new_gl <= 14 && $new_step > 7){
+                        $new_step = 7;
+                    }
+                    elseif($new_gl >= 11 && $new_gl <= 13 && $new_step > 8){
+                        $new_step = 8;
+                    }
+                    elseif($new_gl >= 3 && $new_gl <= 10 && $new_step > 10){
+                        $new_step = 10;
+                    }
+                            
+
+                    $old_salary = OldConpass::where('gl', $old_gl)
+                                    ->where('step', $old_step)
+                                    ->first();
+                    $new_salary = OldConpass::where('gl', $new_gl)
+                                    ->where('step', $new_step)
+                                    ->first();
+                                    
+                    // return $new_salary;
+                    array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * $value['months']);
+
+                    // ENTER THE DATA
+                    if ($loop_count == 0) {
+                        if ($variation->months_paid > 0) {
+                            $sheet->fromArray([
+                                ['YEAR '.$key],
+                                [
+                                    date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                                    'GRADE LEVEL',
+                                    'GROSS',
+                                    'TAX',
+                                    'NHF',
+                                    'PENSION',
+                                    'TOTAL DED',
+                                    'NET PAY'
+                                ],
+                                [
+                                    'PROMOTED SALARY (GROSS)',
+                                    $variation->new_gl.'/'.($new_step),
+                                    $new_salary->gross_emolument,
+                                    $new_salary->tax,
+                                    $new_salary->nhf,
+                                    $new_salary->pension,
+                                    $new_salary->total_deduction,
+                                    $new_salary->net_pay
+                                ],
+                                [
+                                    'OLD SALARY (GROSS)',
+                                    $variation->old_gl.'/'.($old_step),
+                                    $old_salary->gross_emolument,
+                                    $old_salary->tax,
+                                    $old_salary->nhf,
+                                    $old_salary->pension,
+                                    $old_salary->total_deduction,
+                                    $old_salary->net_pay
+                                ],
+                                [
+                                    '1 MONTH VARIANCE',
+                                    '',
+                                    $new_salary->gross_emolument-$old_salary->gross_emolument,
+                                    $new_salary->tax-$old_salary->tax,
+                                    $new_salary->nhf-$old_salary->nhf,
+                                    $new_salary->pension-$old_salary->pension,
+                                    $new_salary->total_deduction-$old_salary->total_deduction,
+                                    $new_salary->net_pay-$old_salary->net_pay,
+                                ],
+                                [
+                                    $value['months'].' MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                                    '',
+                                    ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->nhf-$old_salary->nhf)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->pension-$old_salary->pension)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
+                                ],
+                            ], null, "A".($i+6));
+                        }else{
+                            $sheet->fromArray([
+                                ['YEAR '.$key],
+                                [
+                                    date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                                    'GRADE LEVEL',
+                                    'GROSS',
+                                    'TAX',
+                                    'NHF',
+                                    'PENSION',
+                                    'TOTAL DED',
+                                    'NET PAY'
+                                ],
+                                [
+                                    'PROMOTED SALARY (GROSS)',
+                                    $variation->new_gl.'/'.($new_step),
+                                    $new_salary->gross_emolument,
+                                    $new_salary->tax,
+                                    $new_salary->nhf,
+                                    $new_salary->pension,
+                                    $new_salary->total_deduction,
+                                    $new_salary->net_pay
+                                ],
+                                [
+                                    'OLD SALARY (GROSS)',
+                                    $variation->old_gl.'/'.($old_step),
+                                    $old_salary->gross_emolument,
+                                    $old_salary->tax,
+                                    $old_salary->nhf,
+                                    $old_salary->pension,
+                                    $old_salary->total_deduction,
+                                    $old_salary->net_pay
+                                ],
+                                [
+                                    '1 MONTH VARIANCE',
+                                    '',
+                                    $new_salary->gross_emolument-$old_salary->gross_emolument,
+                                    $new_salary->tax-$old_salary->tax,
+                                    $new_salary->nhf-$old_salary->nhf,
+                                    $new_salary->pension-$old_salary->pension,
+                                    $new_salary->total_deduction-$old_salary->total_deduction,
+                                    $new_salary->net_pay-$old_salary->net_pay,
+                                ],
+                                [
+                                    $value['months'].' MONTHS VARIANCE',
+                                    '',
+                                    ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->nhf-$old_salary->nhf)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->pension-$old_salary->pension)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
+                                    ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
+                                ],
+                            ], null, "A".($i+6));
+                        }
+                    }else{
+                        // dd($count);
+                        $sheet->fromArray([
+                            ['YEAR '.$key],
+                            [
+                                date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                                'GRADE LEVEL',
+                                'GROSS',
+                                'TAX',
+                                'NHF',
+                                'PENSION',
+                                'TOTAL DED',
+                                'NET PAY'
+                            ],
+                            [
+                                'PROMOTED SALARY (GROSS)',
+                                $variation->new_gl.'/'.($new_step),
+                                $new_salary->gross_emolument,
+                                $new_salary->tax,
+                                $new_salary->nhf,
+                                $new_salary->pension,
+                                $new_salary->total_deduction,
+                                $new_salary->net_pay
+                            ],
+                            [
+                                'OLD SALARY (GROSS)',
+                                $variation->old_gl.'/'.($old_step),
+                                $old_salary->gross_emolument,
+                                $old_salary->tax,
+                                $old_salary->nhf,
+                                $old_salary->pension,
+                                $old_salary->total_deduction,
+                                $old_salary->net_pay
+                            ],
+                            [
+                                '1 MONTH VARIANCE',
+                                '',
+                                $new_salary->gross_emolument-$old_salary->gross_emolument,
+                                $new_salary->tax-$old_salary->tax,
+                                $new_salary->nhf-$old_salary->nhf,
+                                $new_salary->pension-$old_salary->pension,
+                                $new_salary->total_deduction-$old_salary->total_deduction,
+                                $new_salary->net_pay-$old_salary->net_pay,
+                            ],
+                            [
+                                $value['months'].' MONTHS VARIANCE',
+                                '',
+                                ($new_salary->gross_emolument-$old_salary->gross_emolument)*$value['months'],
+                                ($new_salary->tax-$old_salary->tax)*$value['months'],
+                                ($new_salary->nhf-$old_salary->nhf)*$value['months'],
+                                ($new_salary->pension-$old_salary->pension)*$value['months'],
+                                ($new_salary->total_deduction-$old_salary->total_deduction)*$value['months'],
+                                ($new_salary->net_pay-$old_salary->net_pay)*$value['months'],
+                            ],
+                        ], null, "A".($i+6));
+                    }
+                    // return count($iteration);
+                    if($count == count($iteration)){
+                        // return count($iteration);
+                        if($variation->months_paid > 0){
+                            
+                            $sheet->fromArray([
+                                [
+                                    $months_owed.' TOTAL MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    array_sum($total),
+                                ],
+                            ], null, "A".($i+12));
+                        }else{
+                            $sheet->fromArray([
+                                [
+                                    $months_owed.' TOTAL MONTHS VARIANCE',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    array_sum($total),
+                                ],
+                            ], null, "A".($i+12));
+                        }
+                    }
+
+                    $i+=6;
+                    $stp_add++;
+                    $count++;
+                    $loop_count++;
+                }
+                $sheet_key++;
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save(storage_path('app/excel/bulk_variation_advice.xlsx'));
+            return response()->download(storage_path('app/excel/bulk_variation_advice.xlsx'));
+        }
+        else{
+            return false;
+        }
+    }
+
 }

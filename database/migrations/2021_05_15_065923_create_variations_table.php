@@ -25,8 +25,8 @@ class CreateVariationsTable extends Migration
             $table->dateTime('dofa')->nullable();
             $table->string('salary_structure')->nullable();
             $table->string('paypoint')->nullable();
-            $table->dateTime('dor')->nullable();
-
+            $table->string('bank')->nullable();
+            $table->string('acc_no')->nullable();
             $table->string('old_rank')->nullable();
             $table->integer('old_gl')->nullable();
             $table->integer('old_step')->nullable();
@@ -37,10 +37,11 @@ class CreateVariationsTable extends Migration
             $table->float('new_salary_per_annum', 20, 6)->nullable();
             $table->dateTime('effective')->nullable();
             $table->dateTime('placed')->nullable();
-
-            $table->integer('months_owed')->nullable();
+            $table->integer('months_owed')->default(0);
+            $table->integer('months_paid')->nullable();
             $table->float('variation_amount', 20, 6)->nullable();
             $table->float('arrears', 20, 6)->nullable();
+            $table->string('pro_type')->nullable();
             $table->string('remark')->nullable();
             // $table->softDeletes();
             $table->timestamps();

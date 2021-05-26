@@ -78,7 +78,7 @@
                     });
                     if (id.length > 0) {
                         $('.enlistBtn').prop('disabled', true).html('PROCESSING...');
-                        axios.post(`{!! route('generate_bulk_variation_slip') !!}`, { candidates: id }, {responseType: 'blob'})
+                        axios.post(`{!! route('generate_bulk_admin_variation') !!}`, { candidates: id }, {responseType: 'blob'})
                             .then(function(response) {
                                 if(response.status == 200){
                                     if(response.data.size == 0){

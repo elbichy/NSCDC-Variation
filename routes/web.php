@@ -35,6 +35,11 @@ Route::group(['prefix' => 'variation'], function () {
     Route::post('/personnel/store', [VariationController::class, 'store_imported_personnel'])->name('store_imported_personnel');
     Route::post('/variation/store', [VariationController::class, 'store_imported_variation'])->name('store_imported_variation');
 });
-// GENERATION OF LETTER
-Route::post('/generate/slip/bulk', [VariationController::class, 'generate_bulk_variation_letter'])->name('generate_bulk_variation_slip');
-Route::get('/generate/slip/{candidate}', [VariationController::class, 'generate_single_variation_letter'])->name('generate_single_variation_slip');
+
+// GENERATION OF ADMIN VARIATION
+Route::post('/generate/variation/admin/bulk', [VariationController::class, 'generate_bulk_admin_variation'])->name('generate_bulk_admin_variation');
+Route::get('/generate/variation/admin/{candidate}', [VariationController::class, 'generate_single_admin_variation'])->name('generate_single_admin_variation');
+
+// GENERATION OF FINANCE VARIATION
+Route::post('/generate/variation/finance/bulk', [VariationController::class, 'generate_bulk_finance_variation'])->name('generate_bulk_finance_variation');
+Route::get('/generate/variation/finance/{candidate}', [VariationController::class, 'generate_single_finance_variation'])->name('generate_single_finance_variation');

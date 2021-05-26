@@ -17,7 +17,8 @@
                             </a>
                         </div>
                         
-                        <button id="enlistBtn" class="enlistBtn btn btn-small"><i class="fas fa-file-word right"></i> GENERATE BULK VARIATION ADVICE</button>
+                        <button id="financeBtn" class="financeBtn btn purple btn-small"><i class="fas fa-file-word right"></i> GENERATE FINANCE VARIATION</button>
+                        <button id="adminBtn" class="adminBtn btn btn-small"><i class="fas fa-file-word right"></i> GENERATE ADMIN VARIATION</button>
                     </div>
                     <table class="table centered table-bordered striped highlight" id="users-table">
                         <thead>
@@ -69,29 +70,65 @@
     <script>
 
         $(function() {
-            // GENERATE BULK variation LETTER
-            $(document).on('click', '#enlistBtn', function() {
+            // GENERATE BULK ADMIN VARIATION
+            $(document).on('click', '#adminBtn', function() {
                 let id = [];
                 if (confirm('Are you sure you want to generate variation advice for the selected personnel(s)?')) {
                     $('.personnelCheckbox:checked').each(function() {
                         id.push($(this).val())
                     });
                     if (id.length > 0) {
-                        $('.enlistBtn').prop('disabled', true).html('PROCESSING...');
-                        axios.post(`{!! route('generate_bulk_variation_slip') !!}`, { candidates: id }, {responseType: 'blob'})
+                        $('.adminBtn').prop('disabled', true).html('PROCESSING...');
+                        axios.post(`{!! route('generate_bulk_admin_variation') !!}`, { candidates: id }, {responseType: 'blob'})
                             .then(function(response) {
                                 if(response.status == 200){
                                     if(response.data.size == 0){
                                         alert('The selected personnel have no single progression record')
-                                        $('.enlistBtn').prop('disabled', false).html(`<i class="material-icons right">format_list_bulleted</i> GENERATE VARIATION ADVICE`);
+                                        $('.adminBtn').prop('disabled', false).html(`<i class="material-icons right">format_list_bulleted</i> GENERATE ADMIN VARIATION `);
                                         $('#users-table th input:checked'). prop("checked", false);
                                         $('#users-table').DataTable().ajax.reload();
                                     }else{
-                                        $('.enlistBtn').prop('disabled', false).html(`<i class="material-icons right">format_list_bulleted</i> GENERATE VARIATION ADVICE`);
+                                        $('.adminBtn').prop('disabled', false).html(`<i class="material-icons right">format_list_bulleted</i> GENERATE ADMIN VARIATION`);
                                         const url = window.URL.createObjectURL(new Blob([response.data]));
                                         const link = document.createElement('a');
                                         link.href = url;
                                         link.setAttribute('download', 'bulk_variation_advice.docx');
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        $('#users-table th input:checked'). prop("checked", false);
+                                        $('#users-table').DataTable().ajax.reload();
+                                    }
+                                }
+                            });
+                    } else {
+                        alert('You must select at least one personnel!');
+                    }
+                }
+            });
+
+            // GENERATE BULK FINANCE VARIATION
+            $(document).on('click', '#financeBtn', function() {
+                let id = [];
+                if (confirm('Are you sure you want to generate variation advice for the selected personnel(s)?')) {
+                    $('.personnelCheckbox:checked').each(function() {
+                        id.push($(this).val())
+                    });
+                    if (id.length > 0) {
+                        $('.financeBtn').prop('disabled', true).html('PROCESSING...');
+                        axios.post(`{!! route('generate_bulk_finance_variation') !!}`, { candidates: id }, {responseType: 'blob'})
+                            .then(function(response) {
+                                if(response.status == 200){
+                                    if(response.data.size == 0){
+                                        alert('The selected personnel have no single progression record')
+                                        $('.financeBtn').prop('disabled', false).html(`<i class="material-icons right">format_list_bulleted</i> GENERATE FINANCE VARIATION`);
+                                        $('#users-table th input:checked'). prop("checked", false);
+                                        $('#users-table').DataTable().ajax.reload();
+                                    }else{
+                                        $('.financeBtn').prop('disabled', false).html(`<i class="material-icons right">format_list_bulleted</i> GENERATE FINANCE VARIATION`);
+                                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                                        const link = document.createElement('a');
+                                        link.href = url;
+                                        link.setAttribute('download', 'bulk_variation_advice.xlsx');
                                         document.body.appendChild(link);
                                         link.click();
                                         $('#users-table th input:checked'). prop("checked", false);
