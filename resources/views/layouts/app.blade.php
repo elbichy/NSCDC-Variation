@@ -56,6 +56,36 @@
 </head>
 <body>
     <div class="app" id="app">
+
+        {{-- MODAL --}}
+        <div id="show_advice" class="modal" style="width: 98%!important;">
+            <div class="modal-content">
+              <h4 class="center" style="margin-bottom: 10px;">Variation Advice</h4>
+               <table class="advice_table centered stripped highlight">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Rank/GL</th>
+                            <th>Service No.</th>
+                            <th>Old Salary Per Annum</th>
+                            <th>New Salary Per Annum</th>
+                            <th>Effective Date</th>
+                            <th>Variation Amount to</th>
+                            <th>Remark</th>
+                            <th>Paypoint</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                        </tr>
+                    </tbody>
+               </table>
+            </div>
+            <div class="modal-footer">
+              <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+            </div>
+          </div>
+
         {{-- Navbar goes here --}}
         <div id="space-for-sidenave" class="navbar-fixed">
             <nav>
@@ -67,13 +97,13 @@
 
                     {{-- BREADCRUMB --}}
                     <div class="left breadcrumbWrap hide-on-med-and-up">
-                        <a href="/{{request()->segment(1)}}/{{request()->segment(2)}}/" class="breadcrumb">{{(request()->segment(2) == '') ? 'CONPASS' : ucfirst(request()->segment(2))}}</a>
+                        <a href="/{{request()->segment(1)}}/{{request()->segment(2)}}/" class="breadcrumb">{{(request()->segment(2) == '') ? 'ALL' : ucfirst(request()->segment(2))}}</a>
                     </div>
                     
                     {{-- BREADCRUMB --}}
                     <div class="left breadcrumbWrap hide-on-small-and-down">
                         
-                        <a href="/variation/conpass" class="breadcrumb">VARIATION</a>
+                        <a href="/variation/all" class="breadcrumb">VARIATION</a>
 
                         {{-- <a href="/{{request()->segment(1)}}/{{request()->segment(2)}}/{{request()->segment(3)}}" class="breadcrumb">{{(request()->segment(3) == '') ? 'Dashbord' : ucfirst(request()->segment(3))}}</a> --}}
 
@@ -161,9 +191,11 @@
                             <li class="{{(request()->segment(2) == 'conhesshn') ? 'active' : ''}}">
                                 <a href="{{ route('manage_conhesshn') }}">CONHESSHN</a>
                             </li> --}}
-                            <li class="{{(request()->segment(2) == 'import') ? 'active' : ''}}">
-                                <a href="{{ route('import_data') }}">Import records</a>
-                            </li>
+                            @if(auth()->user()->role == 0)
+                                <li class="{{(request()->segment(2) == 'import') ? 'active' : ''}}">
+                                    <a href="{{ route('import_data') }}">Import records</a>
+                                </li>
+                            @endif
                         </ul>
                         </div>
                     </li>

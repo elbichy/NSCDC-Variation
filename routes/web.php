@@ -60,5 +60,7 @@ Route::get('/generate/variation/finance/{candidate}', [VariationController::clas
 // GENERATION OF IPPIS TRANSLATION
 Route::post('/generate/variation/finance/ippis', [VariationController::class, 'generate_bulk_ippis_translation'])->name('generate_bulk_ippis_translation');
 
+Route::get('/generate/variation/admin/view/{id}', [VariationController::class, 'view_admin_variation'])->name('view_admin_variation');
+
 
 // require __DIR__.'/auth.php';

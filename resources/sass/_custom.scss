@@ -176,6 +176,9 @@
         display:block; 
         background: rgba(0, 0, 0, 0.5);
 
+        #show_advice{
+            width: 82%!important;
+        }
         .submit{
             background: var(--primary-bg-mid);
             &:hover{

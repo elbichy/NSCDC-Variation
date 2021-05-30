@@ -43,10 +43,24 @@ class VariationController extends Controller
                 return Carbon::create($variation->dofa)->format('d/m/Y');
         })
         ->addColumn('view', function($variation) {
-            return '
+            if(auth()->user()->role == 0){
+                return '
                     <a href="'.route('generate_single_admin_variation', $variation->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
                     <a href="'.route('generate_single_finance_variation', $variation->id).'" style="margin-right:5px;" class="green-text text-darken-3" title="Print variation slip"><i class="fas fa-file-excel fa-lg"></i></a>
                 ';
+            }elseif(auth()->user()->role == 1){
+                return '
+                    <a href="'.route('generate_single_admin_variation', $variation->id).'" style="margin-right:5px;" class="blue-text text-darken-3" title="Print variation slip"><i class="fas fa-file-word fa-lg"></i></a>
+                ';
+            }elseif(auth()->user()->role == 2){
+                return '
+                    <a href="#" style="margin-right:5px;" class="blue-text text-darken-3" title="View variation advice" data-id="'.$variation->id.'" onClick="showVariation(event)">
+                        <i class="fas fa-eye fa-lg"></i>
+                    </a>
+
+                    <a href="'.route('generate_single_finance_variation', $variation->id).'" style="margin-right:5px;" class="green-text text-darken-3" title="Print variation slip"><i class="fas fa-file-excel fa-lg"></i></a>
+                ';
+            }
         })
         ->addColumn('checkbox', function($variation) {
             return '<input type="checkbox" name="personnelCheckbox[]" class="personnelCheckbox browser-default" value="'.$variation->id.'" />';
@@ -2041,6 +2055,12 @@ class VariationController extends Controller
         else{
             return false;
         }
+    }
+
+    public function view_admin_variation(Variation $id){
+
+        return $id;
+
     }
 
 }
