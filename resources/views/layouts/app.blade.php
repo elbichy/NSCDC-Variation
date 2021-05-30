@@ -84,6 +84,31 @@
                     
                     {{-- OTHER MENU RIGHT --}}
                     <a href="#" data-target="slide-out" class="sidenav-trigger hide-on-med-and-up right"><i class="material-icons">menu</i></a>
+                    <ul class="right hide-on-med-and-down">
+                        {{-- <li class="logOutBtn">
+                            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="material-icons right">power_settings_new</i>
+                            </a> --}}
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                        {{-- </li>
+                    </ul> --}}
+                    @auth
+                    <!-- Dropdown Structure -->
+                    <ul id="dropdown1" class="dropdown-content">
+                        <li><a href="#"><i class="material-icons left">person</i> Profile</a></li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="material-icons left">power_settings_new</i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="right hide-on-small-only">
+                         <p style="padding-right:12px;"><a class="dropdown-trigger"  data-target="dropdown1" href="#!"  style="display: inline-block;">{{ auth()->user()->fullname }} <i class="material-icons right">arrow_drop_down</i></a></p>
+                    </ul>
+                    @endauth
                 </div>
             </nav>
         </div>

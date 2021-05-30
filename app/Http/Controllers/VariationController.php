@@ -22,6 +22,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class VariationController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+    
     // DISPLAY CONPASS LIST
     public function all(Request $request){
         // $variation = Variation::all();

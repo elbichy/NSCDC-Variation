@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\VariationController;
 /*
 |--------------------------------------------------------------------------
@@ -13,9 +15,18 @@ use App\Http\Controllers\VariationController;
 |
 */
 
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+
+Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
 
-Route::get('/', [VariationController::class, 'all'])->name('manage_all');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+Route::get('variation/', [VariationController::class, 'all'])->name('manage_all');
 Route::get('/variation/all', [VariationController::class, 'all'])->name('manage_all');
 Route::get('/variation/get_all', [VariationController::class, 'get_all_all'])->name('get_all');
 
@@ -48,3 +59,6 @@ Route::get('/generate/variation/finance/{candidate}', [VariationController::clas
 
 // GENERATION OF IPPIS TRANSLATION
 Route::post('/generate/variation/finance/ippis', [VariationController::class, 'generate_bulk_ippis_translation'])->name('generate_bulk_ippis_translation');
+
+
+// require __DIR__.'/auth.php';

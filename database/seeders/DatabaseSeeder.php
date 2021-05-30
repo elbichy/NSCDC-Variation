@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call([
+            UserSeeder::class,
             RankSeeder::class,
             ConpassSeeder::class,
             OldConpassSeeder::class,
