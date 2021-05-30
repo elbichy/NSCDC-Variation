@@ -289,7 +289,7 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
-                        'months_paid' => $months_owed,
+                        'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
                         'pro_type' => $remark,
@@ -334,7 +334,7 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
-                        'months_paid' => $months_owed,
+                        'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
                         'pro_type' => $remark,
@@ -382,7 +382,7 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
-                        'months_paid' => $months_owed,
+                        'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
                         'pro_type' => $remark,
@@ -429,7 +429,7 @@ class VariationController extends Controller
                         'effective' => $effective,
                         'placed' => $placed,
                         'months_owed' => $months_owed,
-                        'months_paid' => $months_owed,
+                        'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
                         'pro_type' => $remark,
@@ -696,7 +696,7 @@ class VariationController extends Controller
                     $progression_code = 5057;
                 }
                 
-                $image =$dNS2D->getBarcodePNG("
+                $image = $dNS2D->getBarcodePNG("
                 <h2>".$variation->name."</h2>
                 <h3>(".$variation->present_rank.")</h3>
                 <h4>Progression:</h4>".'
@@ -865,7 +865,6 @@ class VariationController extends Controller
             return false;
         }
     }
-
     
     public function get_months_owed($start_date, $end_date){
         $s = implode("-", array_reverse(explode("/", $start_date)) );
@@ -898,15 +897,15 @@ class VariationController extends Controller
     public function generate_single_finance_variation($id, DNS2D $dNS2D){   
 
         $variation = Variation::where('id', $id)->first();
-        
         $effective = Carbon::create($variation->effective);
         $placed = Carbon::create($variation->placed);
         $months_owed = $effective->diffInMonths($placed)+1;
 
         $iteration = $this->get_months_owed($effective, $placed);
         
+        // INSTANTIATE PHP_EXCEL
         $spreadsheet = new Spreadsheet();
-
+        
         // DEFAULT SETUPS
         $spreadsheet->getDefaultStyle()->getFont()->setSize(16);
         $sheet = $spreadsheet->getActiveSheet();
@@ -917,28 +916,7 @@ class VariationController extends Controller
         $sheet->getPageSetup()->setScale(100);
         $sheet->getPageSetup()->setFitToWidth(1); 
 
-        $sheet->getStyle('A1:B6')->applyFromArray(
-            [
-                'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                ],
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['argb' => '000000'],
-                    ],
-                ],
-            ]
-        );
-        $sheet->getStyle('B1:B6')->getAlignment()->setWrapText(true);
-        $sheet->getStyle('A1:A6')->applyFromArray(
-            [
-                'font' => [
-                    'bold' => true,
-                ]
-            ]
-        );
+        
         $sheet->getSheetView()->setZoomScale(80);
         $sheet->getColumnDimension('A')->setWidth(26);
         $sheet->getColumnDimension('B')->setWidth(30);
@@ -948,16 +926,76 @@ class VariationController extends Controller
         $sheet->getColumnDimension('F')->setAutoSize(true);
         $sheet->getColumnDimension('G')->setAutoSize(true);
         $sheet->getColumnDimension('H')->setAutoSize(true);
+
+        // HEADING STYLE
+        $sheet->mergeCells('A1:H1');
+        $sheet->getRowDimension(1)->setRowHeight(50);
+        $sheet->getStyle('A1:H1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:H1')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM);
+        $sheet->getStyle('A1:H1')->getFont()->setSize(28);
+        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+
+        $sheet->mergeCells('A2:H2');
+        $sheet->getRowDimension(2)->setRowHeight(40);
+        $sheet->getStyle('A2:H2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:H2')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+        $sheet->getStyle('A2:H2')->getFont()->setSize(20);
+        $sheet->getStyle('A2:H2')->getFont()->setBold(true);
+
+        // HEADING DATA
+        $sheet->getCell('A1')->setValue('NIGERIA SECURITY & CIVIL DEFENCE CORPS');
+        $sheet->getCell('A2')->setValue('Variation Control');
+
+
+        // PERSONNEL INFO STYLE
+        $sheet->getStyle('A3:B8')->applyFromArray(
+            [
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+            ]
+        );
+        $sheet->getStyle('B3:B8')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('A3:A8')->applyFromArray(
+            [
+                'font' => [
+                    'bold' => true,
+                ]
+            ]
+        );
+        $sheet->getStyle('A7:H8')->applyFromArray(
+            [
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+            ]
+        );
+        $sheet->mergeCells('C7:H7'); //BANK NAME
+        $sheet->mergeCells('B8:H8');
         
-        // ENTER THE HEADING
+        // PERSONNEL INFO DATA
         $sheet->fromArray([
             ['NAME', $variation->name,],
             ['SERVICE NO:-',   $variation->svc_no,],
             ['NHQ FILE NO:-',   '',],
             ['IPPIS NO:-',   $variation->ippis_no,],
-            ['ACCOUNT NO/BANK',   $variation->acc_no .' - '. $variation->bank],
+            ['ACCOUNT NO/BANK',   $variation->acc_no, $variation->bank],
             ['PURPOSE',   $variation->remark.' ARREARS'],
-        ]);
+        ], null, 'A3');
 
         // LOOP THROUGH THE YEARS
         $i = 1;
@@ -966,54 +1004,6 @@ class VariationController extends Controller
         $loop_count = 0;
         $total = [];
         foreach ($iteration as $key => $value) {
-
-            // STYLES
-            $sheet->getStyle('A'.($i+6).':H'.($i+12))->applyFromArray([
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['argb' => '000000'],
-                    ],
-                ],
-                'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                ],
-            ]);
-            $sheet->mergeCells('A'.($i+6).':H'.($i+6)); //YEAR HEADING
-            $sheet->getStyle('A'.($i+6).':H'.($i+6))->applyFromArray( //YEAR HEADING
-                [
-                    'font' => [
-                        'bold' => true,
-                    ],
-                    'alignment' => [
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    ],
-                ]
-            );
-
-            $sheet->getStyle('A'.($i+7).':H'.($i+7))->applyFromArray( //COLUMN HEADS
-                [
-                    'font' => [
-                        'bold' => true,
-                    ],
-                    'alignment' => [
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                    ],
-                ]
-            );
-
-            $sheet->getStyle('C'.($i+8).':H'.($i+12))->getNumberFormat() //COMPUTATIONS
-                    ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-            
-            $sheet->getStyle('A'.($i+11).':H'.($i+12))->getAlignment()->setWrapText(true); //TOTALS
-            $sheet->getStyle('A'.($i+11).':H'.($i+12))->applyFromArray( //TOTALS
-                [
-                    'font' => [
-                        'bold' => true,
-                    ]
-                ]
-            );
                     
             $old_gl = $variation->old_gl;
             $new_gl = $variation->new_gl;
@@ -1050,24 +1040,96 @@ class VariationController extends Controller
                 $new_step = 10;
             }
                     
-
-            $old_salary = OldConpass::where('gl', $old_gl)
+            if($variation->salary_structure == 'CONPASS'){
+                $old_salary = OldConpass::where('gl', $old_gl)
                             ->where('step', $old_step)
                             ->first();
-            $new_salary = OldConpass::where('gl', $new_gl)
+                $new_salary = OldConpass::where('gl', $new_gl)
                             ->where('step', $new_step)
                             ->first();
+            }
+            elseif($variation->salary_structure == 'CONMESS'){
+                $old_salary = Conmess::where('conpass_gl', $old_gl)
+                            ->where('conpass_step', $old_step)
+                            ->first();
+                $new_salary = Conmess::where('conpass_gl', $new_gl)
+                            ->where('conpass_step', $new_step)
+                            ->first();
+            }
+            elseif($variation->salary_structure == 'CONHESSP'){
+                $old_salary = Conhessp::where('conpass_gl', $old_gl)
+                            ->where('conpass_step', $old_step)
+                            ->first();
+                $new_salary = Conhessp::where('conpass_gl', $new_gl)
+                            ->where('conpass_step', $new_step)
+                            ->first();
+            }
+            elseif($variation->salary_structure == 'CONHESSHN'){
+                $old_salary = Conhesshn::where('conpass_gl', $old_gl)
+                            ->where('conpass_step', $old_step)
+                            ->first();
+                $new_salary = Conhesshn::where('conpass_gl', $new_gl)
+                            ->where('conpass_step', $new_step)
+                            ->first();
+            }
+            
                             
-            // return $new_salary;
-            array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * $value['months']);
+            array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * ($value['months'] - $variation->months_paid));
 
-            // ENTER THE DATA
-            if ($loop_count == 0) {
+            // MAIN TABLE STYLES
+            $sheet->mergeCells('A'.($i+8).':H'.($i+8));
+            $sheet->getStyle('A'.($i+8).':H'.($i+8))->applyFromArray( //YEAR HEADING
+                [
+                    'font' => [
+                        'bold' => true,
+                    ],
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    ],
+                ]
+            );
+            $sheet->getStyle('A'.($i+8).':H'.($i+14))->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]);
+            $sheet->getStyle('A'.($i+8))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                    $sheet->getRowDimension($i+8)->setRowHeight(40);
+            $sheet->getStyle('A'.($i+9).':H'.($i+9))->applyFromArray( //COLUMN HEADS
+                [
+                    'font' => [
+                        'bold' => true,
+                    ],
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    ],
+                ]
+            );
+            $sheet->getStyle('C'.($i+10).':H'.($i+14))->getNumberFormat() //COMPUTATIONS
+            ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            $sheet->getStyle('A'.($i+13).':H'.($i+14))->getAlignment()->setWrapText(true); //TOTALS
+            $sheet->getStyle('A'.($i+13).':H'.($i+14))->applyFromArray( //TOTALS
+                [
+                    'font' => [
+                        'bold' => true,
+                    ]
+                ]
+            );
+
+            // MAIN TABLE DATA
+            if ($loop_count == 0) { // FIRST ITERATION
                 if ($variation->months_paid > 0) {
                     $sheet->fromArray([
                         ['YEAR '.$key],
                         [
-                            date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                            date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "m/d/Y"),
                             'GRADE LEVEL',
                             'GROSS',
                             'TAX',
@@ -1107,7 +1169,7 @@ class VariationController extends Controller
                             $new_salary->net_pay-$old_salary->net_pay,
                         ],
                         [
-                            $value['months'].' MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                            $value['months'] - $variation->months_paid.' MONTHS VARIANCE',
                             '',
                             ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
                             ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
@@ -1116,7 +1178,7 @@ class VariationController extends Controller
                             ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
                             ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
                         ],
-                    ], null, "A".($i+6));
+                    ], null, "A".($i+8));
                 }else{
                     $sheet->fromArray([
                         ['YEAR '.$key],
@@ -1170,10 +1232,9 @@ class VariationController extends Controller
                             ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
                             ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
                         ],
-                    ], null, "A".($i+6));
+                    ], null, "A".($i+8));
                 }
-            }else{
-                // dd($count);
+            }else{ //EVERY OTHER ITERATION
                 $sheet->fromArray([
                     ['YEAR '.$key],
                     [
@@ -1226,16 +1287,16 @@ class VariationController extends Controller
                         ($new_salary->total_deduction-$old_salary->total_deduction)*$value['months'],
                         ($new_salary->net_pay-$old_salary->net_pay)*$value['months'],
                     ],
-                ], null, "A".($i+6));
+                ], null, "A".($i+8));
             }
-            // return count($iteration);
+
+            // LAST ITERATION
             if($count == count($iteration)){
-                // return count($iteration);
                 if($variation->months_paid > 0){
                     
                     $sheet->fromArray([
                         [
-                            $months_owed.' TOTAL MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                            $months_owed - $variation->months_paid.' TOTAL MONTHS VARIANCE',
                             '',
                             '',
                             '',
@@ -1244,7 +1305,26 @@ class VariationController extends Controller
                             '',
                             array_sum($total),
                         ],
-                    ], null, "A".($i+12));
+                    ], null, "A".($i+14));
+
+                     // SIGNATURE AREA
+                     $sheet->getStyle("A".($i+18))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                     $sheet->getStyle("A".($i+18))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM);
+                     $sheet->getStyle("A".($i+18))->applyFromArray([
+                         'borders' => [
+                             'top' => [
+                                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHED,
+                                 'color' => ['argb' => '000000'],
+                             ],
+                         ],
+                     ]);
+                     $sheet->getRowDimension($i+18)->setRowHeight(25);
+                     $sheet->getStyle("A".($i+18))->getFont()->setSize(20);
+                     $sheet->getStyle("A".($i+18))->getFont()->setBold(true);
+                     $sheet->fromArray([
+                         ['OC VARIATION'],
+                     ], null, "A".($i+18));
+
                 }else{
                     $sheet->fromArray([
                         [
@@ -1257,7 +1337,25 @@ class VariationController extends Controller
                             '',
                             array_sum($total),
                         ],
-                    ], null, "A".($i+12));
+                    ], null, "A".($i+14));
+
+                     // SIGNATURE AREA
+                     $sheet->getStyle("A".($i+18))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                     $sheet->getStyle("A".($i+18))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM);
+                     $sheet->getStyle("A".($i+18))->applyFromArray([
+                         'borders' => [
+                             'top' => [
+                                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHED,
+                                 'color' => ['argb' => '000000'],
+                             ],
+                         ],
+                     ]);
+                     $sheet->getRowDimension($i+18)->setRowHeight(25);
+                     $sheet->getStyle("A".($i+18))->getFont()->setSize(20);
+                     $sheet->getStyle("A".($i+18))->getFont()->setBold(true);
+                     $sheet->fromArray([
+                         ['OC VARIATION'],
+                     ], null, "A".($i+18));
                 }
             }
 
@@ -1275,7 +1373,7 @@ class VariationController extends Controller
 
         $variations = Variation::orderByRaw("FIELD(present_rank, 'CG', 'DCG', 'ACG', 'CC', 'DCC', 'ACC', 'CSC', 'SC', 'DSC', 'ASC I', 'ASC II', 'CIC', 'DCIC', 'ACIC', 'PIC I', 'PIC II', 'SIC', 'IC', 'AIC', 'CCA', 'SCA', 'CA I', 'CA II', 'CA III', 'NON UNIFORM', 'N/A')")->find($request->candidates);
         
-        // DEFAULT SETUPS
+        // INSTANTIATION OF PHPEXCEL
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(16);
         $sheet = $spreadsheet->getActiveSheet();
@@ -1295,32 +1393,10 @@ class VariationController extends Controller
                 // PRINT SETUP
                 $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
                 $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
-                // $sheet->getPageSetup()->setScale(100);
-                $sheet->getPageSetup()->setFitToWidth(1);
-                
-                $sheet->getStyle('A1:B6')->applyFromArray(
-                    [
-                        'alignment' => [
-                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                        ],
-                        'borders' => [
-                            'allBorders' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                                'color' => ['argb' => '000000'],
-                            ],
-                        ],
-                    ]
-                );
-                $sheet->getStyle('B1:B6')->getAlignment()->setWrapText(true);
-                $sheet->getStyle('A1:A6')->applyFromArray(
-                    [
-                        'font' => [
-                            'bold' => true,
-                        ]
-                    ]
-                );
+                $sheet->getPageSetup()->setScale(100);
+                $sheet->getPageSetup()->setFitToWidth(1); 
 
+                
                 $sheet->getSheetView()->setZoomScale(80);
                 $sheet->getColumnDimension('A')->setWidth(26);
                 $sheet->getColumnDimension('B')->setWidth(30);
@@ -1330,16 +1406,76 @@ class VariationController extends Controller
                 $sheet->getColumnDimension('F')->setAutoSize(true);
                 $sheet->getColumnDimension('G')->setAutoSize(true);
                 $sheet->getColumnDimension('H')->setAutoSize(true);
+
+                // HEADING STYLE
+                $sheet->mergeCells('A1:H1');
+                $sheet->getRowDimension(1)->setRowHeight(50);
+                $sheet->getStyle('A1:H1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('A1:H1')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM);
+                $sheet->getStyle('A1:H1')->getFont()->setSize(28);
+                $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+
+                $sheet->mergeCells('A2:H2');
+                $sheet->getRowDimension(2)->setRowHeight(40);
+                $sheet->getStyle('A2:H2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('A2:H2')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+                $sheet->getStyle('A2:H2')->getFont()->setSize(20);
+                $sheet->getStyle('A2:H2')->getFont()->setBold(true);
+
+                // HEADING DATA
+                $sheet->getCell('A1')->setValue('NIGERIA SECURITY & CIVIL DEFENCE CORPS');
+                $sheet->getCell('A2')->setValue('Variation Control');
+
+
+                // PERSONNEL INFO STYLE
+                $sheet->getStyle('A3:B8')->applyFromArray(
+                    [
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                    ]
+                );
+                $sheet->getStyle('B3:B8')->getAlignment()->setWrapText(true);
+                $sheet->getStyle('A3:A8')->applyFromArray(
+                    [
+                        'font' => [
+                            'bold' => true,
+                        ]
+                    ]
+                );
+                $sheet->getStyle('A7:H8')->applyFromArray(
+                    [
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                    ]
+                );
+                $sheet->mergeCells('C7:H7'); //BANK NAME
+                $sheet->mergeCells('B8:H8');
                 
-                // ENTER THE HEADING
+                // PERSONNEL INFO DATA
                 $sheet->fromArray([
                     ['NAME', $variation->name,],
                     ['SERVICE NO:-',   $variation->svc_no,],
                     ['NHQ FILE NO:-',   '',],
                     ['IPPIS NO:-',   $variation->ippis_no,],
-                    ['ACCOUNT NO/BANK',   $variation->acc_no .' - '. $variation->bank],
+                    ['ACCOUNT NO/BANK',   $variation->acc_no, $variation->bank],
                     ['PURPOSE',   $variation->remark.' ARREARS'],
-                ]);
+                ], null, 'A3');
 
                 // LOOP THROUGH THE YEARS
                 $i = 1;
@@ -1348,54 +1484,6 @@ class VariationController extends Controller
                 $loop_count = 0;
                 $total = [];
                 foreach ($iteration as $key => $value) {
-
-                    // STYLES
-                    $sheet->getStyle('A'.($i+6).':H'.($i+12))->applyFromArray([
-                        'borders' => [
-                            'allBorders' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                                'color' => ['argb' => '000000'],
-                            ],
-                        ],
-                        'alignment' => [
-                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                        ],
-                    ]);
-                    $sheet->mergeCells('A'.($i+6).':H'.($i+6)); //YEAR HEADING
-                    $sheet->getStyle('A'.($i+6).':H'.($i+6))->applyFromArray( //YEAR HEADING
-                        [
-                            'font' => [
-                                'bold' => true,
-                            ],
-                            'alignment' => [
-                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                            ],
-                        ]
-                    );
-
-                    $sheet->getStyle('A'.($i+7).':H'.($i+7))->applyFromArray( //COLUMN HEADS
-                        [
-                            'font' => [
-                                'bold' => true,
-                            ],
-                            'alignment' => [
-                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                            ],
-                        ]
-                    );
-
-                    $sheet->getStyle('C'.($i+8).':H'.($i+12))->getNumberFormat() //COMPUTATIONS
-                            ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-                    
-                    $sheet->getStyle('A'.($i+11).':H'.($i+12))->getAlignment()->setWrapText(true); //TOTALS
-                    $sheet->getStyle('A'.($i+11).':H'.($i+12))->applyFromArray( //TOTALS
-                        [
-                            'font' => [
-                                'bold' => true,
-                            ]
-                        ]
-                    );
                             
                     $old_gl = $variation->old_gl;
                     $new_gl = $variation->new_gl;
@@ -1432,24 +1520,82 @@ class VariationController extends Controller
                         $new_step = 10;
                     }
                             
-
-                    $old_salary = OldConpass::where('gl', $old_gl)
+                    if($variation->salary_structure == 'CONPASS'){
+                        $old_salary = OldConpass::where('gl', $old_gl)
                                     ->where('step', $old_step)
                                     ->first();
-                    $new_salary = OldConpass::where('gl', $new_gl)
+                        $new_salary = OldConpass::where('gl', $new_gl)
                                     ->where('step', $new_step)
                                     ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONMESS'){
+                        $old_salary = Conmess::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conmess::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONHESSP'){
+                        $old_salary = Conhessp::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conhessp::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONHESSHN'){
+                        $old_salary = Conhesshn::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conhesshn::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
                                     
                     // return $new_salary;
-                    array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * $value['months']);
+                    array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * ($value['months'] - $variation->months_paid));
 
-                    // ENTER THE DATA
-                    if ($loop_count == 0) {
+                    // MAIN TABLE STYLES
+                    $sheet->mergeCells('A'.($i+8).':H'.($i+8));
+                    $sheet->getStyle('A'.($i+8).':H'.($i+8))->getFont()->setBold(true);
+                    $sheet->getStyle('A'.($i+8).':H'.($i+14))->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                    ]);
+                    $sheet->getStyle('A'.($i+8))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                    $sheet->getRowDimension($i+8)->setRowHeight(40);
+
+                    $sheet->getStyle('A'.($i+9).':H'.($i+9))->applyFromArray( //COLUMN HEADS
+                        [
+                            'font' => [
+                                'bold' => true,
+                            ],
+                            'alignment' => [
+                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            ],
+                        ]
+                    );
+                    $sheet->getStyle('C'.($i+10).':H'.($i+14))->getNumberFormat() //COMPUTATIONS
+                    ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+                    $sheet->getStyle('A'.($i+13).':H'.($i+14))->getAlignment()->setWrapText(true); //TOTALS
+                    $sheet->getStyle('A'.($i+13).':H'.($i+14))->getFont()->setBold(true);
+
+                    // MAIN TABLE DATA
+                    if ($loop_count == 0) { // FIRST ITERATION
                         if ($variation->months_paid > 0) {
                             $sheet->fromArray([
                                 ['YEAR '.$key],
                                 [
-                                    date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
+                                    date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "m/d/Y"),
                                     'GRADE LEVEL',
                                     'GROSS',
                                     'TAX',
@@ -1489,7 +1635,7 @@ class VariationController extends Controller
                                     $new_salary->net_pay-$old_salary->net_pay,
                                 ],
                                 [
-                                    $value['months'].' MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                                    $value['months'] - $variation->months_paid.' MONTHS VARIANCE',
                                     '',
                                     ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
                                     ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
@@ -1498,7 +1644,7 @@ class VariationController extends Controller
                                     ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
                                     ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
                                 ],
-                            ], null, "A".($i+6));
+                            ], null, "A".($i+8));
                         }else{
                             $sheet->fromArray([
                                 ['YEAR '.$key],
@@ -1552,10 +1698,9 @@ class VariationController extends Controller
                                     ($new_salary->total_deduction-$old_salary->total_deduction)*($value['months'] - $variation->months_paid),
                                     ($new_salary->net_pay-$old_salary->net_pay)*($value['months'] - $variation->months_paid),
                                 ],
-                            ], null, "A".($i+6));
+                            ], null, "A".($i+8));
                         }
-                    }else{
-                        // dd($count);
+                    }else{ //EVERY OTHER ITERATION
                         $sheet->fromArray([
                             ['YEAR '.$key],
                             [
@@ -1608,16 +1753,16 @@ class VariationController extends Controller
                                 ($new_salary->total_deduction-$old_salary->total_deduction)*$value['months'],
                                 ($new_salary->net_pay-$old_salary->net_pay)*$value['months'],
                             ],
-                        ], null, "A".($i+6));
+                        ], null, "A".($i+8));
                     }
-                    // return count($iteration);
+
+                    // LAST ITERATION
                     if($count == count($iteration)){
-                        // return count($iteration);
                         if($variation->months_paid > 0){
                             
                             $sheet->fromArray([
                                 [
-                                    $months_owed.' TOTAL MONTHS VARIANCE - ('.$variation->months_paid.' MONTHS PREVIOUSLY PAID)',
+                                    $months_owed - $variation->months_paid.' TOTAL MONTHS VARIANCE',
                                     '',
                                     '',
                                     '',
@@ -1626,7 +1771,26 @@ class VariationController extends Controller
                                     '',
                                     array_sum($total),
                                 ],
-                            ], null, "A".($i+12));
+                            ], null, "A".($i+14));
+
+                            // SIGNATURE AREA
+                            $sheet->getStyle("A".($i+18))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                            $sheet->getStyle("A".($i+18))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM);
+                            $sheet->getStyle("A".($i+18))->applyFromArray([
+                                'borders' => [
+                                    'top' => [
+                                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHED,
+                                        'color' => ['argb' => '000000'],
+                                    ],
+                                ],
+                            ]);
+                            $sheet->getRowDimension($i+18)->setRowHeight(25);
+                            $sheet->getStyle("A".($i+18))->getFont()->setSize(20);
+                            $sheet->getStyle("A".($i+18))->getFont()->setBold(true);
+                            $sheet->fromArray([
+                                ['OC VARIATION'],
+                            ], null, "A".($i+18));
+                            
                         }else{
                             $sheet->fromArray([
                                 [
@@ -1639,10 +1803,27 @@ class VariationController extends Controller
                                     '',
                                     array_sum($total),
                                 ],
-                            ], null, "A".($i+12));
+                            ], null, "A".($i+14));
+
+                            // SIGNATURE AREA
+                            $sheet->getStyle("A".($i+18))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                            $sheet->getStyle("A".($i+18))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM);
+                            $sheet->getStyle("A".($i+18))->applyFromArray([
+                                'borders' => [
+                                    'top' => [
+                                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHED,
+                                        'color' => ['argb' => '000000'],
+                                    ],
+                                ],
+                            ]);
+                            $sheet->getRowDimension($i+18)->setRowHeight(25);
+                            $sheet->getStyle("A".($i+18))->getFont()->setSize(20);
+                            $sheet->getStyle("A".($i+18))->getFont()->setBold(true);
+                            $sheet->fromArray([
+                                ['OC VARIATION'],
+                            ], null, "A".($i+18));
                         }
                     }
-
                     $i+=6;
                     $stp_add++;
                     $count++;
@@ -1654,6 +1835,203 @@ class VariationController extends Controller
             $writer = new Xlsx($spreadsheet);
             $writer->save(storage_path('app/excel/bulk_variation_advice.xlsx'));
             return response()->download(storage_path('app/excel/bulk_variation_advice.xlsx'));
+        }
+        else{
+            return false;
+        }
+    }
+
+    // GENERATE SINGLE IPPIS TRANSLATION
+    public function generate_bulk_ippis_translation(Request $request, DNS2D $dNS2D){   
+
+        $variations = Variation::orderByRaw("FIELD(present_rank, 'CG', 'DCG', 'ACG', 'CC', 'DCC', 'ACC', 'CSC', 'SC', 'DSC', 'ASC I', 'ASC II', 'CIC', 'DCIC', 'ACIC', 'PIC I', 'PIC II', 'SIC', 'IC', 'AIC', 'CCA', 'SCA', 'CA I', 'CA II', 'CA III', 'NON UNIFORM', 'N/A')")->find($request->candidates);
+        
+        // DEFAULT SETUPS
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(16);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        if (count($variations) > 0) {
+            
+            // PRINT SETUP
+            $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+            $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+            // $sheet->getPageSetup()->setScale(100);
+            $sheet->getSheetView()->setZoomScale(80);
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+            $sheet->getColumnDimension('E')->setAutoSize(true);
+            $sheet->getColumnDimension('F')->setAutoSize(true);
+            $sheet->getColumnDimension('G')->setAutoSize(true);
+            $sheet->getColumnDimension('H')->setAutoSize(true);
+            $sheet->getColumnDimension('I')->setAutoSize(true);
+            $sheet->getColumnDimension('J')->setAutoSize(true);
+            $sheet->getColumnDimension('K')->setAutoSize(true);
+            $sheet->getColumnDimension('L')->setAutoSize(true);
+            $sheet->getColumnDimension('M')->setAutoSize(true);
+            $sheet->getColumnDimension('N')->setAutoSize(true);
+            $sheet->getColumnDimension('O')->setAutoSize(true);
+
+            // ENTER THE HEADING
+            $sheet->getStyle('A1:O1')->getFont()->setBold(true);
+            $sheet->fromArray([
+                ['S/N', 'NAME', 'SVC NO', 'IPPIS NO.', 'ACC NO.', 'OLD GL', 'STEP', 'NEW GL', 'STEP', 'EFFECTIVE DATE', 'PLACEMENT DATE', 'NO. OF MONTHS', 'MONTHS PAID', 'ARREARS', 'REMARK']
+            ]);
+
+            $count = 2;
+            $sn = 1;
+            foreach ($variations as $main_key => $variation) {
+                
+                $effective = Carbon::create($variation->effective);
+                $placed = Carbon::create($variation->placed);
+                $iteration = $this->get_months_owed($effective, $placed);
+
+                // LOOP THROUGH THE YEARS
+                $stp_add = 0;
+                $loop_count = 0;
+                $total_net = [];
+                $total_month = [];
+
+                foreach ($iteration as $key => $value) {
+
+                    $old_gl = $variation->old_gl;
+                    $new_gl = $variation->new_gl;
+
+                    $old_step = $variation->old_step+$stp_add;
+                    $new_step = $variation->new_step+$stp_add;
+                    
+                    if ($old_gl >= 15 && $old_gl <= 15 && $old_step > 6) {
+                        $old_step = 6;
+                    } elseif ($old_gl >= 14 && $old_gl <= 14 && $old_step > 7) {
+                        $old_step = 7;
+                    } elseif ($old_gl >= 11 && $old_gl <= 13 && $old_step > 8) {
+                        $old_step = 8;
+                    } elseif ($old_gl >= 3 && $old_gl <= 10 && $old_step > 10) {
+                        $old_step = 10;
+                    }
+
+                    if ($new_gl >= 16 && $new_gl <= 16 && $new_step > 5) {
+                        $new_step = 5;
+                    } elseif ($new_gl >= 15 && $new_gl <= 15 && $new_step > 6) {
+                        $new_step = 6;
+                    } elseif ($new_gl >= 14 && $new_gl <= 14 && $new_step > 7) {
+                        $new_step = 7;
+                    } elseif ($new_gl >= 11 && $new_gl <= 13 && $new_step > 8) {
+                        $new_step = 8;
+                    } elseif ($new_gl >= 3 && $new_gl <= 10 && $new_step > 10) {
+                        $new_step = 10;
+                    }
+                            
+                    if($variation->salary_structure == 'CONPASS'){
+                        $old_salary = OldConpass::where('gl', $old_gl)
+                                    ->where('step', $old_step)
+                                    ->first();
+                        $new_salary = OldConpass::where('gl', $new_gl)
+                                    ->where('step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONMESS'){
+                        $old_salary = Conmess::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conmess::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONHESSP'){
+                        $old_salary = Conhessp::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conhessp::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONHESSHN'){
+                        $old_salary = Conhesshn::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conhesshn::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    
+                    $months = $value['months'];
+                    $months_paid = $variation->months_paid;
+                    $new_net_pay = $new_salary->net_pay;
+                    $old_net_pay = $old_salary->net_pay;
+                    $net = 0;
+                    $no_months = 0;
+                    if ($loop_count == 0) {
+
+                        if ($months_paid > 0) {
+                            $net = ($new_net_pay - $old_net_pay) * ($months - $months_paid);
+                            $no_months = $months;
+                        } else {
+                            $net = ($new_net_pay - $old_net_pay) * $months;
+                            $no_months = $months;
+                        }
+
+                    } else {
+
+                        $net = ($new_net_pay - $old_net_pay) * $months;
+                        $no_months = $months;
+                    }
+
+                    array_push($total_month, $no_months);
+                    array_push($total_net, $net);
+
+                    $stp_add++;
+                    $loop_count++;
+                }
+                
+                $sheet->getStyle('E'.($main_key+1))->getNumberFormat()->setFormatCode('0000000000');
+                $sheet->getStyle('N'.($main_key+1))->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+                $sheet->getStyle('J'.($main_key+1))->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_DATE_DMYSLASH);
+                $sheet->getStyle('K'.($main_key+1))->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_DATE_DMYSLASH);
+
+                $sheet->fromArray([
+                    [
+                        $main_key+1,
+                        $variation->name,
+                        $variation->svc_no,
+                        $variation->ippis_no,
+                        $variation->acc_no,
+                        $variation->old_gl,
+                        $variation->old_step,
+                        $variation->new_gl,
+                        $variation->new_step,
+                        Carbon::create($variation->effective)->format('d/m/Y'),
+                        Carbon::create($variation->placed)->format('d/m/Y'),
+                        array_sum($total_month),
+                        $variation->months_paid,
+                        array_sum($total_net),
+                        $variation->remark
+                    ],
+                   
+                ], null, "A".($count));
+
+                // LAST ITERATION
+                if($sn == count($variations)){
+
+                    // ALIGN WHOLE TABLE LEFT
+                    $sheet->getStyle('A2:O'.($count+1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+                    // FORMAT TOTAL CELL
+                    $sheet->getStyle('N2:N'.($count+1))->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+
+                    // ADD A TOTAL
+                    $sheet->setCellValue("N".($count+1),'=SUM(N2:N'.$count.')');
+                            
+                }
+                
+                $sn++;
+                $count++;
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save(storage_path('app/excel/ippis_translation.xlsx'));
+            return response()->download(storage_path('app/excel/ippis_translation.xlsx'));
         }
         else{
             return false;

@@ -9,16 +9,16 @@
     </title>
     <link rel="shortcut icon" href="{{ asset('storage/fav.png') }}">
     <link href="{{ asset('fontawesome/css/all.css') }}" rel="stylesheet"> <!-- font-awesome -->
-    <link rel="stylesheet" type="text/css" href="{{asset('countdowntimer/src/css/jQuery.countdownTimer.css')}}" />
+    {{-- <link rel="stylesheet" type="text/css" href="{{asset('countdowntimer/src/css/jQuery.countdownTimer.css')}}" /> --}}
     <link rel="stylesheet" href="{{asset('css/material-icons.css')}}">
     <script src="{{asset('js/jquery-3.3.1.min.js')}}"></script>
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script src="{{asset('js/axios.min.js')}}"></script>
     <script src="{{asset('js/wnoty.js')}}"></script>
-    <script type="text/javascript" src="{{asset('countdowntimer/src/js/jQuery.countdownTimer.js')}}"></script>
+    {{-- <script type="text/javascript" src="{{asset('countdowntimer/src/js/jQuery.countdownTimer.js')}}"></script> --}}
 
     <script src="{{asset('materialize-css/js/materialize.min.js')}}"></script>
-    <link rel="stylesheet" charset="utf-8" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    {{-- <link rel="stylesheet" charset="utf-8" href="https://fonts.googleapis.com/icon?family=Material+Icons"> --}}
     <link rel="stylesheet" charset="utf-8" href="{{asset('materialize-css/css/materialize.min.css')}}">
 
     {{-- <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script> --}}
@@ -124,7 +124,7 @@
                             <li class="{{(request()->segment(2) == 'all') ? 'active' : ''}}">
                                 <a href="{{ route('manage_all') }}">ALL</a>
                             </li>
-                            <li class="{{(request()->segment(2) == 'conpass') ? 'active' : ''}}">
+                            {{-- <li class="{{(request()->segment(2) == 'conpass') ? 'active' : ''}}">
                                 <a href="{{ route('manage_conpass') }}">CONPASS</a>
                             </li>
                             <li class="{{(request()->segment(2) == 'conmess') ? 'active' : ''}}">
@@ -135,7 +135,7 @@
                             </li>
                             <li class="{{(request()->segment(2) == 'conhesshn') ? 'active' : ''}}">
                                 <a href="{{ route('manage_conhesshn') }}">CONHESSHN</a>
-                            </li>
+                            </li> --}}
                             <li class="{{(request()->segment(2) == 'import') ? 'active' : ''}}">
                                 <a href="{{ route('import_data') }}">Import records</a>
                             </li>

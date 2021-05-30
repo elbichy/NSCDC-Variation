@@ -13,6 +13,8 @@ use App\Http\Controllers\VariationController;
 |
 */
 
+
+
 Route::get('/', [VariationController::class, 'all'])->name('manage_all');
 Route::get('/variation/all', [VariationController::class, 'all'])->name('manage_all');
 Route::get('/variation/get_all', [VariationController::class, 'get_all_all'])->name('get_all');
@@ -43,3 +45,6 @@ Route::get('/generate/variation/admin/{candidate}', [VariationController::class,
 // GENERATION OF FINANCE VARIATION
 Route::post('/generate/variation/finance/bulk', [VariationController::class, 'generate_bulk_finance_variation'])->name('generate_bulk_finance_variation');
 Route::get('/generate/variation/finance/{candidate}', [VariationController::class, 'generate_single_finance_variation'])->name('generate_single_finance_variation');
+
+// GENERATION OF IPPIS TRANSLATION
+Route::post('/generate/variation/finance/ippis', [VariationController::class, 'generate_bulk_ippis_translation'])->name('generate_bulk_ippis_translation');
