@@ -12,7 +12,6 @@ use App\Models\OldConpass;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Milon\Barcode\DNS2D;
@@ -27,7 +26,7 @@ class VariationController extends Controller
     {
         $this->middleware('auth');
     }
-    
+
     // DISPLAY CONPASS LIST
     public function all(Request $request){
         // $variation = Variation::all();

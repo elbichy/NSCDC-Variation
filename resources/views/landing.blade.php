@@ -46,8 +46,8 @@
 			</div>
 			<div class="heading">
 				<img src="{{ asset('storage/pdfLogo.png') }}" alt="logo" width="100px" height="100px">
-				<h6 class="">Admin Directorate</h6>
-				<p class="">Personnel Management Platform</p>
+				<h6 class="">NSCDC</h6>
+				<p class="">Variation Platform (V1.0)</p>
 			</div>
 			<form action="{{ route('login') }}" method="POST" class="form row" id="login_form">
 				@csrf

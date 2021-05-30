@@ -133,7 +133,7 @@
                         </span></a>
 
                         {{-- BUSINESS BRANCH AND ADDRESS --}}
-                        <a href="#email"><span class="white-text email">Admin Database</span></a>
+                        <a href="#email"><span class="white-text email">Variation Platform</span></a>
                     </div>
                 </li>
 
