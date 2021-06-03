@@ -27,6 +27,34 @@ class VariationController extends Controller
         $this->middleware('auth');
     }
 
+    public function get_months_owed($start_date, $end_date){
+        $s = implode("-", array_reverse(explode("/", $start_date)) );
+        $e = implode("-", array_reverse(explode("/", $end_date)) );
+    
+        // get the parts separated
+        $start = explode("-",$s);
+        $end = explode("-",$e) ;
+
+        $iterations = ((intVal($end[0]) - intVal($start[0])) * 12) - (intVal($start[1]) - intVal($end[1])) ;
+
+        $sets=[$start[0] => array("start" => $s, "end" => "", "months" => 0)];
+        $curdstart= $curd = $s;
+        $curyear = date("Y", strtotime($s));
+
+        for($x=0; $x<=$iterations; $x++) {
+            $curdend = date("Y-m-d", strtotime($curd . " +{$x} months"));
+            $curyear = date("Y", strtotime($curdend));
+            if (!isset($sets[$curyear])) {
+                $sets[$curyear]= array("start" => $curdend, "end" => "", "months" => 0);
+            }
+            $sets[$curyear]['months']++;
+            $sets[$curyear]['end'] = date("Y-m-", strtotime($curdend)) . "31";
+            
+        }
+
+        return $sets;
+    }
+
     // DISPLAY CONPASS LIST
     public function all(Request $request){
         // $variation = Variation::all();
@@ -311,7 +339,7 @@ class VariationController extends Controller
                         'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
-                        'pro_type' => $remark,
+                        'pro_type' => $pro_type,
                         'remark' => $remark,
                         ]);
                     }else{
@@ -356,7 +384,7 @@ class VariationController extends Controller
                         'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
-                        'pro_type' => $remark,
+                        'pro_type' => $pro_type,
                         'remark' => $remark,
                         ]);
                     }
@@ -404,7 +432,7 @@ class VariationController extends Controller
                         'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
-                        'pro_type' => $remark,
+                        'pro_type' => $pro_type,
                         'remark' => $remark,
                     ]);
 
@@ -451,7 +479,7 @@ class VariationController extends Controller
                         'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
-                        'pro_type' => $remark,
+                        'pro_type' => $pro_type,
                         'remark' => $remark,
                     ]);
 
@@ -497,7 +525,7 @@ class VariationController extends Controller
                         'months_paid' => $months_paid,
                         'variation_amount' => $variation_amount,
                         'arrears' => $arrears,
-                        'pro_type' => $remark,
+                        'pro_type' => $pro_type,
                         'remark' => $remark,
                     ]);
                 }
@@ -513,7 +541,12 @@ class VariationController extends Controller
     public function generate_single_admin_variation($id, DNS2D $dNS2D){   
 
         $variation = Variation::where('id', $id)->first();
-            
+        $effective = Carbon::create($variation->effective);
+        $placed = Carbon::create($variation->placed);
+        $months_owed = $effective->diffInMonths($placed)+1;
+        $pr_year = $effective->format('Y');
+        $iteration = $this->get_months_owed($effective, $placed);
+        
         $phpWord = new \PhpOffice\PhpWord\PhpWord();
         $phpWord->setDefaultFontName('Times New Roman');
         $phpWord->getSettings()->setHideGrammaticalErrors(true);
@@ -527,6 +560,161 @@ class VariationController extends Controller
                 $progression_code = 3037;
             }else{
                 $progression_code = 5057;
+            }
+
+            // LOOP THROUGH THE YEARS
+            $i = 1;
+            $stp_add = 0;
+            $count = 1;
+            $loop_count = 0;
+            $old_steps = [];
+            $new_steps = [];
+            // return $iteration;
+            foreach ($iteration as $key => $value) {
+
+                $old_gl = $variation->old_gl;
+                $new_gl = $variation->new_gl;
+
+                if($pr_year == 2014 || $pr_year == 2015 || $pr_year == 2017 || $pr_year == 2019){
+
+                    if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                        $old_step = $variation->old_step+$stp_add - 1;
+                        $new_step = $variation->new_step+$stp_add;
+                    }else{
+                        $old_step = $variation->old_step+$stp_add - 1;
+                        $new_step = $variation->new_step+$stp_add -1;
+                    }
+                    if($old_step <= 1){
+                        $old_step = 1;
+                    }
+                    if($new_step <=  1){
+                        $new_step = 1;
+                    }
+                    
+                }
+                elseif($pr_year == 2016 || $pr_year == 2018){
+
+                    if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                        $old_step = $variation->old_step+$stp_add - 2;
+                        $new_step = $variation->new_step+$stp_add;
+                    }else{
+                        $old_step = $variation->old_step+$stp_add - 2;
+                        $new_step = $variation->new_step+$stp_add -2;
+                    }
+                    if($old_step <= 1){
+                        $old_step = 1;
+                    }
+                    if($new_step <=  1){
+                        $new_step = 1;
+                    }
+                    
+                }
+                
+                if($old_gl >= 15 && $old_gl <= 15 && $old_step > 6){
+                    $old_step = 6;
+                }
+                elseif($old_gl >= 14 && $old_gl <= 14 && $old_step > 7){
+                    $old_step = 7;
+                }
+                elseif($old_gl >= 11 && $old_gl <= 13 && $old_step > 8){
+                    $old_step = 8;
+                }
+                elseif($old_gl >= 3 && $old_gl <= 10 && $old_step > 10){
+                    $old_step = 10;
+                }
+
+                if($new_gl >= 16 && $new_gl <= 16 && $new_step > 5){
+                    $new_step = 5;
+                }
+                elseif($new_gl >= 15 && $new_gl <= 15 && $new_step > 6){
+                    $new_step = 6;
+                }
+                elseif($new_gl >= 14 && $new_gl <= 14 && $new_step > 7){
+                    $new_step = 7;
+                }
+                elseif($new_gl >= 11 && $new_gl <= 13 && $new_step > 8){
+                    $new_step = 8;
+                }
+                elseif($new_gl >= 3 && $new_gl <= 10 && $new_step > 10){
+                    $new_step = 10;
+                }
+
+                if($variation->salary_structure == 'CONPASS'){
+                    $old_salary = OldConpass::where('gl', $old_gl)
+                                ->where('step', $old_step)
+                                ->first();
+                    $new_salary = OldConpass::where('gl', $new_gl)
+                                ->where('step', $new_step)
+                                ->first();
+                }
+                elseif($variation->salary_structure == 'CONMESS'){
+                    $old_salary = Conmess::where('conpass_gl', $old_gl)
+                                ->where('conpass_step', $old_step)
+                                ->first();
+                    $new_salary = Conmess::where('conpass_gl', $new_gl)
+                                ->where('conpass_step', $new_step)
+                                ->first();
+                }
+                elseif($variation->salary_structure == 'CONHESSP'){
+                    $old_salary = Conhessp::where('conpass_gl', $old_gl)
+                                ->where('conpass_step', $old_step)
+                                ->first();
+                    $new_salary = Conhessp::where('conpass_gl', $new_gl)
+                                ->where('conpass_step', $new_step)
+                                ->first();
+                }
+                elseif($variation->salary_structure == 'CONHESSHN'){
+                    $old_salary = Conhesshn::where('conpass_gl', $old_gl)
+                                ->where('conpass_step', $old_step)
+                                ->first();
+                    $new_salary = Conhesshn::where('conpass_gl', $new_gl)
+                                ->where('conpass_step', $new_step)
+                                ->first();
+                }
+                
+                // echo  $new_step;
+                array_push($new_steps, $new_step);
+                array_push($old_steps, $old_step);
+
+                $i+=6;
+                $stp_add++;
+                $count++;
+                $loop_count++;
+            }
+            // print_r($old_steps);
+            // print_r($new_steps);
+
+            if($variation->salary_structure == 'CONPASS'){
+                $previous_salary = OldConpass::where('gl', $old_gl)
+                            ->where('step', $old_steps[0])
+                            ->first();
+                $promoted_salary = OldConpass::where('gl', $new_gl)
+                            ->where('step', $new_steps[0])
+                            ->first();
+            }
+            elseif($variation->salary_structure == 'CONMESS'){
+                $previous_salary = Conmess::where('conpass_gl', $old_gl)
+                            ->where('conpass_step', $old_steps[0])
+                            ->first();
+                $promoted_salary = Conmess::where('conpass_gl', $new_gl)
+                            ->where('conpass_step', $new_steps[0])
+                            ->first();
+            }
+            elseif($variation->salary_structure == 'CONHESSP'){
+                $previous_salary = Conhessp::where('conpass_gl', $old_gl)
+                            ->where('conpass_step', $old_steps[0])
+                            ->first();
+                $promoted_salary = Conhessp::where('conpass_gl', $new_gl)
+                            ->where('conpass_step', $new_steps[0])
+                            ->first();
+            }
+            elseif($variation->salary_structure == 'CONHESSHN'){
+                $previous_salary = Conhesshn::where('conpass_gl', $old_gl)
+                            ->where('conpass_step', $old_steps[0])
+                            ->first();
+                $promoted_salary = Conhesshn::where('conpass_gl', $new_gl)
+                            ->where('conpass_step', $new_steps[0])
+                            ->first();
             }
             
             $image =$dNS2D->getBarcodePNG("
@@ -632,16 +820,16 @@ class VariationController extends Controller
                 $variation_table->addCell(1000, $cellStyles)->addText($variation->svc_no, $tdFontStyles);
 
                 $old_salary = $variation_table->addCell(1500, $cellStyles);
-                $old_salary->addText('GL ('.sprintf("%02d", $variation->old_gl).'/'.$variation->old_step.')', $tdFontStyles);
-                $old_salary->addText('₦'.number_format($variation->old_salary_per_annum), $tdFontStyles);
+                $old_salary->addText('GL ('.sprintf("%02d", $variation->old_gl).'/'.$old_steps[0].')', $tdFontStyles);
+                $old_salary->addText('₦'.number_format($previous_salary->salary_per_annum), $tdFontStyles);
 
                 $new_salary = $variation_table->addCell(1500, $cellStyles);
-                $new_salary->addText('GL ('.sprintf("%02d", $variation->new_gl).'/'.$variation->new_step.')', $tdFontStyles);
-                $new_salary->addText('₦'.number_format($variation->new_salary_per_annum), $tdFontStyles);
+                $new_salary->addText('GL ('.sprintf("%02d", $variation->new_gl).'/'.$new_steps[0].')', $tdFontStyles);
+                $new_salary->addText('₦'.number_format($promoted_salary->salary_per_annum), $tdFontStyles);
 
                 $variation_table->addCell(null, $cellStyles)->addText(Carbon::make($variation->effective)->format('d/m/Y'), $tdFontStyles);
 
-                $variation_table->addCell(null, $cellStyles)->addText('₦'.number_format($variation->variation_amount), $tdFontStyles);
+                $variation_table->addCell(null, $cellStyles)->addText('₦'.number_format($promoted_salary->salary_per_annum - $previous_salary->salary_per_annum), $tdFontStyles);
 
                 $variation_table->addCell(null, $cellStyles)->addText(ucwords(strtolower($variation->remark)), $tdFontStyles);
 
@@ -885,33 +1073,6 @@ class VariationController extends Controller
         }
     }
     
-    public function get_months_owed($start_date, $end_date){
-        $s = implode("-", array_reverse(explode("/", $start_date)) );
-        $e = implode("-", array_reverse(explode("/", $end_date)) );
-    
-        // get the parts separated
-        $start = explode("-",$s);
-        $end = explode("-",$e) ;
-
-        $iterations = ((intVal($end[0]) - intVal($start[0])) * 12) - (intVal($start[1]) - intVal($end[1])) ;
-
-        $sets=[$start[0] => array("start" => $s, "end" => "", "months" => 0)];
-        $curdstart= $curd = $s;
-        $curyear = date("Y", strtotime($s));
-
-        for($x=0; $x<=$iterations; $x++) {
-            $curdend = date("Y-m-d", strtotime($curd . " +{$x} months"));
-            $curyear = date("Y", strtotime($curdend));
-            if (!isset($sets[$curyear])) {
-                $sets[$curyear]= array("start" => $curdend, "end" => "", "months" => 0);
-            }
-            $sets[$curyear]['months']++;
-            $sets[$curyear]['end'] = date("Y-m-", strtotime($curdend)) . "31";
-            
-        }
-
-        return $sets;
-    }
     // GENERATE SINGLE FINANCE VARIATION
     public function generate_single_finance_variation($id, DNS2D $dNS2D){   
 
@@ -919,9 +1080,12 @@ class VariationController extends Controller
         $effective = Carbon::create($variation->effective);
         $placed = Carbon::create($variation->placed);
         $months_owed = $effective->diffInMonths($placed)+1;
-
+        $pr_year = $effective->format('Y');
         $iteration = $this->get_months_owed($effective, $placed);
-        
+
+        // BASED ON ARRAY_REVERSE
+        // $iteration = \array_reverse($iteration);
+
         // INSTANTIATE PHP_EXCEL
         $spreadsheet = new Spreadsheet();
         
@@ -1022,13 +1186,46 @@ class VariationController extends Controller
         $count = 1;
         $loop_count = 0;
         $total = [];
+        // return $iteration;
         foreach ($iteration as $key => $value) {
-                    
+
             $old_gl = $variation->old_gl;
             $new_gl = $variation->new_gl;
 
-            $old_step = $variation->old_step+$stp_add;
-            $new_step = $variation->new_step+$stp_add;
+            if($pr_year == 2014 || $pr_year == 2015 || $pr_year == 2017 || $pr_year == 2019){
+
+                if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                    $old_step = $variation->old_step+$stp_add - 1;
+                    $new_step = $variation->new_step+$stp_add;
+                }else{
+                    $old_step = $variation->old_step+$stp_add - 1;
+                    $new_step = $variation->new_step+$stp_add -1;
+                }
+                if($old_step <= 1){
+                    $old_step = 1;
+                }
+                if($new_step <=  1){
+                    $new_step = 1;
+                }
+                
+            }
+            elseif($pr_year == 2016 || $pr_year == 2018){
+
+                if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                    $old_step = $variation->old_step+$stp_add - 2;
+                    $new_step = $variation->new_step+$stp_add;
+                }else{
+                    $old_step = $variation->old_step+$stp_add - 2;
+                    $new_step = $variation->new_step+$stp_add -2;
+                }
+                if($old_step <= 1){
+                    $old_step = 1;
+                }
+                if($new_step <=  1){
+                    $new_step = 1;
+                }
+                
+            }
             
             if($old_gl >= 15 && $old_gl <= 15 && $old_step > 6){
                 $old_step = 6;
@@ -1058,7 +1255,16 @@ class VariationController extends Controller
             elseif($new_gl >= 3 && $new_gl <= 10 && $new_step > 10){
                 $new_step = 10;
             }
-                    
+
+            // BASED ON ARRAY_REVERSE
+            // if($old_step <= 1){
+            //     $old_step = 1;
+            // }
+            // if($new_step <=  1){
+            //     $new_step = 1;
+            // }
+            // return $new_gl.'/'.$new_step.'</br>'.$old_gl.'/'.$old_step;
+
             if($variation->salary_structure == 'CONPASS'){
                 $old_salary = OldConpass::where('gl', $old_gl)
                             ->where('step', $old_step)
@@ -1147,6 +1353,8 @@ class VariationController extends Controller
                 if ($variation->months_paid > 0) {
                     $sheet->fromArray([
                         ['YEAR '.$key],
+                        // BASED ON ARRAY_REVERSE
+                        // ['YEAR '.date_format(date_create($value['start']), "Y")],
                         [
                             date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "m/d/Y"),
                             'GRADE LEVEL',
@@ -1201,6 +1409,8 @@ class VariationController extends Controller
                 }else{
                     $sheet->fromArray([
                         ['YEAR '.$key],
+                        // BASED ON ARRAY_REVERSE
+                        // ['YEAR '.date_format(date_create($value['start']), "Y")],
                         [
                             date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
                             'GRADE LEVEL',
@@ -1256,6 +1466,8 @@ class VariationController extends Controller
             }else{ //EVERY OTHER ITERATION
                 $sheet->fromArray([
                     ['YEAR '.$key],
+                    // BASED ON ARRAY_REVERSE
+                    // ['YEAR '.date_format(date_create($value['start']), "Y")],
                     [
                         date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
                         'GRADE LEVEL',
@@ -1379,6 +1591,10 @@ class VariationController extends Controller
             }
 
             $i+=6;
+
+            // BASED ON ARRAY_REVERSE
+            // $stp_add--;
+            
             $stp_add++;
             $count++;
             $loop_count++;
@@ -1871,7 +2087,7 @@ class VariationController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
 
         if (count($variations) > 0) {
-            
+
             // PRINT SETUP
             $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
             $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
@@ -1906,7 +2122,8 @@ class VariationController extends Controller
                 $effective = Carbon::create($variation->effective);
                 $placed = Carbon::create($variation->placed);
                 $iteration = $this->get_months_owed($effective, $placed);
-
+                $pr_year = $effective->format('Y');
+                
                 // LOOP THROUGH THE YEARS
                 $stp_add = 0;
                 $loop_count = 0;
@@ -1918,8 +2135,39 @@ class VariationController extends Controller
                     $old_gl = $variation->old_gl;
                     $new_gl = $variation->new_gl;
 
-                    $old_step = $variation->old_step+$stp_add;
-                    $new_step = $variation->new_step+$stp_add;
+                    if($pr_year == 2014 || $pr_year == 2015 || $pr_year == 2017 || $pr_year == 2019){
+
+                        if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                            $old_step = $variation->old_step+$stp_add - 1;
+                            $new_step = $variation->new_step+$stp_add;
+                        }else{
+                            $old_step = $variation->old_step+$stp_add - 1;
+                            $new_step = $variation->new_step+$stp_add -1;
+                        }
+                        if($old_step <= 1){
+                            $old_step = 1;
+                        }
+                        if($new_step <=  1){
+                            $new_step = 1;
+                        }
+                    }
+                    elseif($pr_year == 2016 || $pr_year == 2018){
+        
+                        if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                            $old_step = $variation->old_step+$stp_add - 2;
+                            $new_step = $variation->new_step+$stp_add;
+                        }else{
+                            $old_step = $variation->old_step+$stp_add - 2;
+                            $new_step = $variation->new_step+$stp_add -2;
+                        }
+                        if($old_step <= 1){
+                            $old_step = 1;
+                        }
+                        if($new_step <=  1){
+                            $new_step = 1;
+                        }
+                        
+                    }
                     
                     if ($old_gl >= 15 && $old_gl <= 15 && $old_step > 6) {
                         $old_step = 6;
