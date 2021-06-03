@@ -884,7 +884,7 @@ class VariationController extends Controller
     public function generate_bulk_admin_variation(Request $request, DNS2D $dNS2D){
 
         $variations = Variation::orderByRaw("FIELD(present_rank, 'CG', 'DCG', 'ACG', 'CC', 'DCC', 'ACC', 'CSC', 'SC', 'DSC', 'ASC I', 'ASC II', 'CIC', 'DCIC', 'ACIC', 'PIC I', 'PIC II', 'SIC', 'IC', 'AIC', 'CCA', 'SCA', 'CA I', 'CA II', 'CA III', 'NON UNIFORM', 'N/A')")->find($request->candidates);
-
+        
         $phpWord = new \PhpOffice\PhpWord\PhpWord();
         $phpWord->setDefaultFontName('Times New Roman');
         $phpWord->getSettings()->setHideGrammaticalErrors(true);
@@ -893,7 +893,13 @@ class VariationController extends Controller
         // return count($candidates);
         if(count($variations) > 0){
             foreach($variations as $variation){
-        
+                
+                $effective = Carbon::create($variation->effective);
+                $placed = Carbon::create($variation->placed);
+                $months_owed = $effective->diffInMonths($placed)+1;
+                $pr_year = $effective->format('Y');
+                $iteration = $this->get_months_owed($effective, $placed);
+                
                 $current = Carbon::now();
                 $currentDate = $current->format('m/Y');
                 $progression_code = null;
@@ -901,6 +907,161 @@ class VariationController extends Controller
                     $progression_code = 3037;
                 }else{
                     $progression_code = 5057;
+                }
+
+                // LOOP THROUGH THE YEARS
+                $i = 1;
+                $stp_add = 0;
+                $count = 1;
+                $loop_count = 0;
+                $old_steps = [];
+                $new_steps = [];
+                // return $iteration;
+                foreach ($iteration as $key => $value) {
+
+                    $old_gl = $variation->old_gl;
+                    $new_gl = $variation->new_gl;
+
+                    if($pr_year == 2014 || $pr_year == 2015 || $pr_year == 2017 || $pr_year == 2019){
+
+                        if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                            $old_step = $variation->old_step+$stp_add - 1;
+                            $new_step = $variation->new_step+$stp_add;
+                        }else{
+                            $old_step = $variation->old_step+$stp_add - 1;
+                            $new_step = $variation->new_step+$stp_add -1;
+                        }
+                        if($old_step <= 1){
+                            $old_step = 1;
+                        }
+                        if($new_step <=  1){
+                            $new_step = 1;
+                        }
+                        
+                    }
+                    elseif($pr_year == 2016 || $pr_year == 2018){
+
+                        if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                            $old_step = $variation->old_step+$stp_add - 2;
+                            $new_step = $variation->new_step+$stp_add;
+                        }else{
+                            $old_step = $variation->old_step+$stp_add - 2;
+                            $new_step = $variation->new_step+$stp_add -2;
+                        }
+                        if($old_step <= 1){
+                            $old_step = 1;
+                        }
+                        if($new_step <=  1){
+                            $new_step = 1;
+                        }
+                        
+                    }
+                    
+                    if($old_gl >= 15 && $old_gl <= 15 && $old_step > 6){
+                        $old_step = 6;
+                    }
+                    elseif($old_gl >= 14 && $old_gl <= 14 && $old_step > 7){
+                        $old_step = 7;
+                    }
+                    elseif($old_gl >= 11 && $old_gl <= 13 && $old_step > 8){
+                        $old_step = 8;
+                    }
+                    elseif($old_gl >= 3 && $old_gl <= 10 && $old_step > 10){
+                        $old_step = 10;
+                    }
+
+                    if($new_gl >= 16 && $new_gl <= 16 && $new_step > 5){
+                        $new_step = 5;
+                    }
+                    elseif($new_gl >= 15 && $new_gl <= 15 && $new_step > 6){
+                        $new_step = 6;
+                    }
+                    elseif($new_gl >= 14 && $new_gl <= 14 && $new_step > 7){
+                        $new_step = 7;
+                    }
+                    elseif($new_gl >= 11 && $new_gl <= 13 && $new_step > 8){
+                        $new_step = 8;
+                    }
+                    elseif($new_gl >= 3 && $new_gl <= 10 && $new_step > 10){
+                        $new_step = 10;
+                    }
+
+                    if($variation->salary_structure == 'CONPASS'){
+                        $old_salary = OldConpass::where('gl', $old_gl)
+                                    ->where('step', $old_step)
+                                    ->first();
+                        $new_salary = OldConpass::where('gl', $new_gl)
+                                    ->where('step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONMESS'){
+                        $old_salary = Conmess::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conmess::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONHESSP'){
+                        $old_salary = Conhessp::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conhessp::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    elseif($variation->salary_structure == 'CONHESSHN'){
+                        $old_salary = Conhesshn::where('conpass_gl', $old_gl)
+                                    ->where('conpass_step', $old_step)
+                                    ->first();
+                        $new_salary = Conhesshn::where('conpass_gl', $new_gl)
+                                    ->where('conpass_step', $new_step)
+                                    ->first();
+                    }
+                    
+                    // echo  $new_step;
+                    array_push($new_steps, $new_step);
+                    array_push($old_steps, $old_step);
+
+                    $i+=6;
+                    $stp_add++;
+                    $count++;
+                    $loop_count++;
+                }
+                // print_r($old_steps);
+                // print_r($new_steps);
+
+                if($variation->salary_structure == 'CONPASS'){
+                    $previous_salary = OldConpass::where('gl', $old_gl)
+                                ->where('step', $old_steps[0])
+                                ->first();
+                    $promoted_salary = OldConpass::where('gl', $new_gl)
+                                ->where('step', $new_steps[0])
+                                ->first();
+                }
+                elseif($variation->salary_structure == 'CONMESS'){
+                    $previous_salary = Conmess::where('conpass_gl', $old_gl)
+                                ->where('conpass_step', $old_steps[0])
+                                ->first();
+                    $promoted_salary = Conmess::where('conpass_gl', $new_gl)
+                                ->where('conpass_step', $new_steps[0])
+                                ->first();
+                }
+                elseif($variation->salary_structure == 'CONHESSP'){
+                    $previous_salary = Conhessp::where('conpass_gl', $old_gl)
+                                ->where('conpass_step', $old_steps[0])
+                                ->first();
+                    $promoted_salary = Conhessp::where('conpass_gl', $new_gl)
+                                ->where('conpass_step', $new_steps[0])
+                                ->first();
+                }
+                elseif($variation->salary_structure == 'CONHESSHN'){
+                    $previous_salary = Conhesshn::where('conpass_gl', $old_gl)
+                                ->where('conpass_step', $old_steps[0])
+                                ->first();
+                    $promoted_salary = Conhesshn::where('conpass_gl', $new_gl)
+                                ->where('conpass_step', $new_steps[0])
+                                ->first();
                 }
                 
                 $image = $dNS2D->getBarcodePNG("
@@ -1621,7 +1782,8 @@ class VariationController extends Controller
                 $placed = Carbon::create($variation->placed);
                 $months_owed = $effective->diffInMonths($placed)+1;
                 $iteration = $this->get_months_owed($effective, $placed);
-
+                $effective = Carbon::create($variation->effective);
+                $pr_year = $effective->format('Y');
                 $sheet_key > 0 ? $sheet = $spreadsheet->createSheet($sheet_key) : null;
                 $sheet->setTitle($variation->ippis_no.' - '.substr($variation->remark, 0, 5));
 
@@ -1723,8 +1885,40 @@ class VariationController extends Controller
                     $old_gl = $variation->old_gl;
                     $new_gl = $variation->new_gl;
 
-                    $old_step = $variation->old_step+$stp_add;
-                    $new_step = $variation->new_step+$stp_add;
+                    if($pr_year == 2014 || $pr_year == 2015 || $pr_year == 2017 || $pr_year == 2019){
+
+                        if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                            $old_step = $variation->old_step+$stp_add - 1;
+                            $new_step = $variation->new_step+$stp_add;
+                        }else{
+                            $old_step = $variation->old_step+$stp_add - 1;
+                            $new_step = $variation->new_step+$stp_add -1;
+                        }
+                        if($old_step <= 1){
+                            $old_step = 1;
+                        }
+                        if($new_step <=  1){
+                            $new_step = 1;
+                        }
+                        
+                    }
+                    elseif($pr_year == 2016 || $pr_year == 2018){
+
+                        if($new_gl == 7 || $new_gl == 8 || $new_gl == 15){
+                            $old_step = $variation->old_step+$stp_add - 2;
+                            $new_step = $variation->new_step+$stp_add;
+                        }else{
+                            $old_step = $variation->old_step+$stp_add - 2;
+                            $new_step = $variation->new_step+$stp_add -2;
+                        }
+                        if($old_step <= 1){
+                            $old_step = 1;
+                        }
+                        if($new_step <=  1){
+                            $new_step = 1;
+                        }
+                        
+                    }
                     
                     if($old_gl >= 15 && $old_gl <= 15 && $old_step > 6){
                         $old_step = 6;

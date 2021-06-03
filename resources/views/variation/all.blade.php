@@ -265,7 +265,7 @@
                     { data: 'svc_no', name: 'svc_no'},
                     { data: 'ippis_no', name: 'ippis_no'},
                     { data: 'name', name: 'name' },
-                    { data: 'present_gl', name: 'present_gl' },
+                    { data: 'new_gl', name: 'new_gl' },
                     // { data: 'dofa', name: 'dofa' },
                     { data: 'remark', name: 'remark'},
                     @if(auth()->user()->role != 3)
