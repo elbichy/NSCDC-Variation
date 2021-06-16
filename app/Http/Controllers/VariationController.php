@@ -1347,9 +1347,10 @@ class VariationController extends Controller
         $count = 1;
         $loop_count = 0;
         $total = [];
+        
         // return $iteration;
         foreach ($iteration as $key => $value) {
-
+            
             $old_gl = $variation->old_gl;
             $new_gl = $variation->new_gl;
 
@@ -1417,15 +1418,6 @@ class VariationController extends Controller
                 $new_step = 10;
             }
 
-            // BASED ON ARRAY_REVERSE
-            // if($old_step <= 1){
-            //     $old_step = 1;
-            // }
-            // if($new_step <=  1){
-            //     $new_step = 1;
-            // }
-            // return $new_gl.'/'.$new_step.'</br>'.$old_gl.'/'.$old_step;
-
             if($variation->salary_structure == 'CONPASS'){
                 $old_salary = OldConpass::where('gl', $old_gl)
                             ->where('step', $old_step)
@@ -1459,8 +1451,11 @@ class VariationController extends Controller
                             ->first();
             }
             
-                            
-            array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * ($value['months'] - $variation->months_paid));
+            if ($loop_count == 0) { // FIRST ITERATION      
+                array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * ($value['months'] - $variation->months_paid));
+            }else {
+                array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * $value['months']);
+            }
 
             // MAIN TABLE STYLES
             $sheet->mergeCells('A'.($i+8).':H'.($i+8));
@@ -1557,7 +1552,7 @@ class VariationController extends Controller
                             $new_salary->net_pay-$old_salary->net_pay,
                         ],
                         [
-                            $value['months'] - $variation->months_paid.' MONTHS VARIANCE',
+                            $value['months'].' MONTHS VARIANCE - '.$variation->months_paid.' MONTHS PREVIOUSLY PAID',
                             '',
                             ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
                             ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
@@ -1627,8 +1622,6 @@ class VariationController extends Controller
             }else{ //EVERY OTHER ITERATION
                 $sheet->fromArray([
                     ['YEAR '.$key],
-                    // BASED ON ARRAY_REVERSE
-                    // ['YEAR '.date_format(date_create($value['start']), "Y")],
                     [
                         date_format(date_create($value['start']), "d/m/Y").' - '.date_format(date_create($value['end']), "d/m/Y"),
                         'GRADE LEVEL',
@@ -1983,7 +1976,11 @@ class VariationController extends Controller
                     }
                                     
                     // return $new_salary;
-                    array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * ($value['months'] - $variation->months_paid));
+                    if ($loop_count == 0) { // FIRST ITERATION      
+                        array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * ($value['months'] - $variation->months_paid));
+                    }else {
+                        array_push($total, ($new_salary->net_pay - $old_salary->net_pay) * $value['months']);
+                    }
 
                     // MAIN TABLE STYLES
                     $sheet->mergeCells('A'.($i+8).':H'.($i+8));
@@ -2064,7 +2061,7 @@ class VariationController extends Controller
                                     $new_salary->net_pay-$old_salary->net_pay,
                                 ],
                                 [
-                                    $value['months'] - $variation->months_paid.' MONTHS VARIANCE',
+                                    $value['months'].' MONTHS VARIANCE - '.$variation->months_paid.' MONTHS PREVIOUSLY PAID',
                                     '',
                                     ($new_salary->gross_emolument-$old_salary->gross_emolument)*($value['months'] - $variation->months_paid),
                                     ($new_salary->tax-$old_salary->tax)*($value['months'] - $variation->months_paid),
