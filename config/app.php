@@ -54,7 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'asset_url' => env('ASSET_URL', 'http://nscdc-variation.herokuapp.com'),
+    'asset_url' => env('ASSET_URL', null),
+    // 'asset_url' => env('ASSET_URL', 'http://nscdc-variation.herokuapp.com'),
 
     /*
     |--------------------------------------------------------------------------
